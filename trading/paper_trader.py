@@ -15,7 +15,8 @@ class PaperTrader:
         self.position = {
             "pair": pair,
             "direction": direction,
-            "entry": price
+            "entry": price,
+            "opened_at": price
         }
 
         print(f"📈 OPEN {direction} {pair} @ {price}")
@@ -51,7 +52,7 @@ class PaperTrader:
     def close_trade(self, current_price):
 
         if self.position is None:
-            return
+            return None
 
         entry = self.position["entry"]
         direction = self.position["direction"]
@@ -71,12 +72,21 @@ class PaperTrader:
             self.losses += 1
 
         print(f"💰 CLOSE {self.position['pair']}")
-        print(f"PnL : {round(pnl,2)}")
-        print(f"Balance : {round(self.balance,2)}")
+        print(f"PnL : {round(pnl, 2)}")
+        print(f"Balance : {round(self.balance, 2)}")
+
+        trade = {
+            "pair": self.position["pair"],
+            "direction": self.position["direction"],
+            "entry": entry,
+            "exit": current_price,
+            "pnl": pnl,
+            "balance": self.balance
+        }
 
         self.position = None
 
-        return pnl
+        return trade
 
     def stats(self):
 
