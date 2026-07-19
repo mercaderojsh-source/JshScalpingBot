@@ -209,7 +209,7 @@ while True:
             if "SELL" in best["setup"]:
                 direction = "SELL"
 
-            trader.open_trade(
+            trade = trader.open_trade(
                 best["pair"],
                 direction,
                 best["price"],
@@ -218,10 +218,13 @@ while True:
 
             send_message(
                 f"📈 PAPER TRADE OPEN\n\n"
-                f"{best['pair']}\n"
-                f"{direction}\n"
-                f"Entry : {best['price']}\n"
-                f"ATR   : {round(best['atr'], 4)}"
+                f"Pair : {trade['pair']}\n"
+                f"Side : {trade['direction']}\n"
+                f"Entry: {trade['entry']}\n"
+                f"ATR  : {round(trade['atr'], 4)}\n"
+                f"SL   : {trade['stop_loss']}\n"
+                f"TP   : {trade['take_profit']}\n"
+                f"Score: {best['score']}"
             )
 
     # -----------------------------
