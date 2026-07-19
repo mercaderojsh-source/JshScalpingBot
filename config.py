@@ -15,7 +15,6 @@ PAIRS = [
 SCAN_INTERVAL = 30
 
 # Strategy
-CONFIDENCE_THRESHOLD = 40
 MIN_SCORE = 75
 
 # Paper Trading
