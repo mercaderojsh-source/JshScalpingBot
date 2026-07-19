@@ -220,10 +220,11 @@ while True:
                 f"📈 PAPER TRADE OPEN\n\n"
                 f"Pair : {trade['pair']}\n"
                 f"Side : {trade['direction']}\n"
-                f"Entry: {trade['entry']}\n"
-                f"ATR  : {round(trade['atr'], 4)}\n"
-                f"SL   : {trade['stop_loss']}\n"
-                f"TP   : {trade['take_profit']}\n"
+                f"Entry: {trade['entry']:.4f}\n"
+                f"ATR  : {trade['atr']:.4f}\n"
+                f"SL   : {trade['stop_loss']:.4f}\n"
+                f"TP   : {trade['take_profit']:.4f}\n"
+                f"Size : {trade['size']:.6f}\n"
                 f"Score: {best['score']}"
             )
 
