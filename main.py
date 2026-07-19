@@ -104,8 +104,14 @@ while True:
             "signal": signal,
             "setup": setup,
             "confidence": confidence,
-            "volatility": vol
+            "volatility_score": vol
         })
+
+    # Safety check
+    if not results:
+        print("⚠️ No market data received.")
+        time.sleep(SCAN_INTERVAL)
+        continue
 
     ranked = rank_pairs(results)
 
@@ -147,7 +153,7 @@ while True:
             f"{index}. {item['pair']} | "
             f"{item['setup']} | "
             f"Conf: {item['confidence']}% | "
-            f"Vol: {item['volatility']}"
+            f"Vol: {item['volatility_score']}"
         )
 
     # -----------------------------
