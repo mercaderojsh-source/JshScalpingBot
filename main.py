@@ -1,5 +1,11 @@
 import time
 
+from config import (
+    PAIRS,
+    SCAN_INTERVAL,
+    CONFIDENCE_THRESHOLD,
+)
+
 from exchange.bitget import get_candles
 
 from indicators.ema import calculate_ema
@@ -17,16 +23,6 @@ from trading.trade_journal import TradeJournal
 
 from telegram.telegram_bot import send_message
 
-
-PAIRS = [
-    "BTCUSDT",
-    "ETHUSDT",
-    "SOLUSDT",
-    "XRPUSDT",
-    "BGBUSDT"
-]
-
-SCAN_INTERVAL = 30
 
 trader = PaperTrader()
 journal = TradeJournal()
@@ -147,7 +143,7 @@ while True:
                         f"💰 PAPER TRADE CLOSED\n\n"
                         f"{trade['pair']}\n"
                         f"Exit: {exit_signal}\n"
-                        f"PnL: {round(trade['pnl'],2)}\n"
+                        f"PnL: {round(trade['pnl'], 2)}\n"
                         f"Balance: ${trade['balance']:.2f}"
                     )
 
@@ -174,7 +170,10 @@ while True:
 
         best = ranked[0]
 
-        if best["confidence"] >= 40:
+        if (
+            best["confidence"] >= CONFIDENCE_THRESHOLD
+            and "WATCHLIST" not in best["setup"]
+        ):
 
             direction = "BUY"
 
