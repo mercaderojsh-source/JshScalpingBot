@@ -4,6 +4,7 @@ from config import (
     PAIRS,
     SCAN_INTERVAL,
     CONFIDENCE_THRESHOLD,
+    MIN_SCORE,
 )
 
 from exchange.bitget import get_candles
@@ -198,7 +199,7 @@ while True:
         best = ranked[0]
 
         if (
-            best["confidence"] >= CONFIDENCE_THRESHOLD
+            best["score"] >= MIN_SCORE
             and "WATCHLIST" not in best["setup"]
             and best["market_state"] not in ["🌊 RANGING", "😴 QUIET"]
         ):
