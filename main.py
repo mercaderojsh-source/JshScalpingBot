@@ -17,6 +17,7 @@ from strategy.setup_detector import detect_setup
 from strategy.confidence import confidence_score
 
 from scanner.volatility_ranker import volatility_score, rank_pairs
+from scanner.market_state import market_state
 
 from trading.paper_trader import PaperTrader
 from trading.trade_journal import TradeJournal
@@ -91,6 +92,14 @@ while True:
             atr
         )
 
+        state = market_state(
+            ema9,
+            ema21,
+            ema50,
+            atr,
+            rsi
+        )
+
         vol = volatility_score(
             atr,
             price
@@ -102,7 +111,8 @@ while True:
             "signal": signal,
             "setup": setup,
             "confidence": confidence,
-            "volatility_score": vol
+            "volatility_score": vol,
+            "market_state": state
         })
 
     if not results:
@@ -156,12 +166,12 @@ while True:
 
     for index, item in enumerate(ranked, start=1):
 
-        print(
-            f"{index}. {item['pair']} | "
-            f"{item['setup']} | "
-            f"Conf: {item['confidence']}% | "
-            f"Vol: {item['volatility_score']}"
-        )
+        print(f"{index}. {item['pair']}")
+        print(f"   State : {item['market_state']}")
+        print(f"   Setup : {item['setup']}")
+        print(f"   Conf  : {item['confidence']}%")
+        print(f"   Vol   : {item['volatility_score']}")
+        print()
 
     # -----------------------------
     # Open new paper trade
@@ -173,6 +183,8 @@ while True:
         if (
             best["confidence"] >= CONFIDENCE_THRESHOLD
             and "WATCHLIST" not in best["setup"]
+            and best["market_state"] != "🌊 RANGING"
+            and best["market_state"] != "😴 QUIET"
         ):
 
             direction = "BUY"
