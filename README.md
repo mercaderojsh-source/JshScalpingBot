@@ -1,0 +1,2 @@
+# JshScalpingBot
+Make me Rich
