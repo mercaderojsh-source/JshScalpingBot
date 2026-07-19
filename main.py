@@ -3,7 +3,6 @@ import time
 from config import (
     PAIRS,
     SCAN_INTERVAL,
-    CONFIDENCE_THRESHOLD,
     MIN_SCORE,
 )
 
