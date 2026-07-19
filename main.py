@@ -1,5 +1,6 @@
 import time
 from exchange.bitget import get_ticker
+from telegram.telegram_bot import send_message
 
 PAIRS = [
     "BTCUSDT",
@@ -14,6 +15,14 @@ def main():
     print("=" * 40)
     print("🚀 JshScalpingBot Started")
     print("=" * 40)
+
+    send_message(
+        "🚀 JshScalpingBot Online\n\n"
+        "✅ Railway Connected\n"
+        "✅ Bitget Connected\n"
+        "📈 Monitoring:\n"
+        "BTC • ETH • SOL • XRP • BGB"
+    )
 
     while True:
         for pair in PAIRS:
