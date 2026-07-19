@@ -144,7 +144,7 @@ if trader.position is not None:
 
         if (
             trader.position is None
-            and item["confidence"] >= 80
+            and item["confidence"] >= 40
         ):
 
             direction = "BUY"
