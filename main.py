@@ -1,6 +1,7 @@
 import time
 
 from exchange.bitget import get_candles
+
 from indicators.ema import calculate_ema
 from indicators.atr import calculate_atr
 from indicators.rsi import calculate_rsi
@@ -8,6 +9,11 @@ from indicators.rsi import calculate_rsi
 from strategy.signal_engine import generate_signal
 from strategy.setup_detector import detect_setup
 from strategy.confidence import confidence_score
+
+from scanner.volatility_ranker import (
+    volatility_score,
+    rank_pairs,
+)
 
 from telegram.telegram_bot import send_message
 
@@ -21,36 +27,44 @@ PAIRS = [
 ]
 
 
-print("=" * 50)
-print("🚀 JshScalpingBot Multi-Pair Scanner")
-print("=" * 50)
+print("=" * 60)
+print("🚀 JshScalpingBot Intelligent Scanner")
+print("=" * 60)
 
-send_message("🤖 JshScalpingBot Scanner Started")
+send_message("🤖 JshScalpingBot Intelligent Scanner Started")
 
 
 while True:
 
-    print("\n" + "=" * 50)
+    print("\n" + "=" * 60)
     print("🔍 New Market Scan")
-    print("=" * 50)
+    print("=" * 60)
+
+    results = []
 
     for pair in PAIRS:
 
-        candles = get_candles(pair)["data"]
+        response = get_candles(pair)
+
+        if response["code"] != "00000":
+            continue
+
+        candles = response["data"]
 
         closes = [float(c[4]) for c in candles]
         highs = [float(c[2]) for c in candles]
         lows = [float(c[3]) for c in candles]
 
-        # Indicators
+        price = closes[-1]
+
         ema9 = calculate_ema(closes, 9)
         ema21 = calculate_ema(closes, 21)
         ema50 = calculate_ema(closes, 50)
 
         atr = calculate_atr(highs, lows, closes)
+
         rsi = calculate_rsi(closes)
 
-        # Current signal
         signal = generate_signal(
             ema9,
             ema21,
@@ -59,7 +73,6 @@ while True:
             rsi
         )
 
-        # Setup detector
         setup = detect_setup(
             ema9,
             ema21,
@@ -68,8 +81,7 @@ while True:
             atr
         )
 
-        # Confidence score
-        score = confidence_score(
+        confidence = confidence_score(
             ema9,
             ema21,
             ema50,
@@ -77,25 +89,56 @@ while True:
             atr
         )
 
-        print(f"\n{'=' * 50}")
-        print(pair)
-        print(f"{'=' * 50}")
+        vol_score = volatility_score(
+            atr,
+            price
+        )
 
-        print(signal)
-        print(f"Setup      : {setup}")
-        print(f"Confidence : {score}%")
+        results.append({
+            "pair": pair,
+            "signal": signal,
+            "setup": setup,
+            "confidence": confidence,
+            "volatility_score": vol_score
+        })
 
-        # Telegram alert
-        if score >= 80:
-            message = (
-                f"🚨 {pair}\n\n"
-                f"{setup}\n\n"
-                f"{signal}\n\n"
-                f"Confidence: {score}%"
+    ranked = rank_pairs(results)
+
+    print("\n🔥 TOP OPPORTUNITIES\n")
+
+    for index, item in enumerate(ranked, start=1):
+
+        print(
+            f"{index}. {item['pair']}"
+        )
+
+        print(
+            f"   Setup       : {item['setup']}"
+        )
+
+        print(
+            f"   Confidence  : {item['confidence']}%"
+        )
+
+        print(
+            f"   Volatility  : {item['volatility_score']}"
+        )
+
+        print()
+
+        if (
+            item["confidence"] >= 80
+            and item["volatility_score"] >= 5
+        ):
+
+            send_message(
+                f"🔥 TOP SCALPING SETUP\n\n"
+                f"{item['pair']}\n\n"
+                f"{item['setup']}\n"
+                f"Confidence: {item['confidence']}%\n"
+                f"Volatility: {item['volatility_score']}"
             )
 
-            send_message(message)
-
-    print("\n⏳ Waiting 30 seconds...\n")
+    print("⏳ Waiting 30 seconds...\n")
 
     time.sleep(30)
