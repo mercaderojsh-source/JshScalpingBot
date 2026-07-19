@@ -1,15 +1,12 @@
-import pandas as pd
+def calculate_ema(closes, period):
+    if len(closes) < period:
+        return None
 
+    multiplier = 2 / (period + 1)
 
-def calculate_ema(candles, period):
+    ema = sum(closes[:period]) / period
 
-    closes = []
+    for price in closes[period:]:
+        ema = (price - ema) * multiplier + ema
 
-    for candle in candles:
-        closes.append(float(candle[4]))
-
-    df = pd.DataFrame(closes, columns=["close"])
-
-    ema = df["close"].ewm(span=period).mean()
-
-    return float(ema.iloc[-1])
+    return ema
