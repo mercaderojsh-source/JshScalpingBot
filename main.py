@@ -1,8 +1,11 @@
+import time
+
 from exchange.bitget import get_candles
 from indicators.ema import calculate_ema
 from indicators.atr import calculate_atr
 from indicators.rsi import calculate_rsi
 from strategy.signal_engine import generate_signal
+from telegram.telegram_bot import send_message
 
 PAIRS = [
     "BTCUSDT",
@@ -16,48 +19,43 @@ print("=" * 50)
 print("🚀 JshScalpingBot Multi-Pair Scanner")
 print("=" * 50)
 
-for pair in PAIRS:
+send_message("🤖 JshScalpingBot Scanner Started")
 
-    candles = get_candles(pair)
+while True:
 
-    if candles["code"] != "00000":
-        print(pair, "ERROR")
-        continue
+    print("\n" + "=" * 50)
+    print("🔍 New Market Scan")
+    print("=" * 50)
 
-    closes = [float(c[4]) for c in candles["data"]]
-    highs = [float(c[2]) for c in candles["data"]]
-    lows = [float(c[3]) for c in candles["data"]]
+    for pair in PAIRS:
 
-    ema9 = calculate_ema(closes, 9)
-    ema21 = calculate_ema(closes, 21)
-    ema50 = calculate_ema(closes, 50)
+        candles = get_candles(pair)["data"]
 
-    atr = calculate_atr(highs, lows, closes)
-    rsi = calculate_rsi(closes)
+        closes = [float(c[4]) for c in candles]
+        highs = [float(c[2]) for c in candles]
+        lows = [float(c[3]) for c in candles]
 
-    score, reasons = generate_signal(
-        ema9,
-        ema21,
-        ema50,
-        atr,
-        rsi
-    )
+        ema9 = calculate_ema(closes, 9)
+        ema21 = calculate_ema(closes, 21)
+        ema50 = calculate_ema(closes, 50)
 
-    print()
-    print("=" * 40)
-    print(pair)
-    print("=" * 40)
+        atr = calculate_atr(highs, lows, closes)
+        rsi = calculate_rsi(closes)
 
-    print(f"Score : {score}/3")
+        signal = generate_signal(
+            ema9,
+            ema21,
+            ema50,
+            atr,
+            rsi
+        )
 
-    for reason in reasons:
-        print(reason)
+        print(f"\n{pair}")
+        print(signal)
 
-    if score == 3:
-        print("🚀 STRONG SETUP")
+        if "STRONG" in signal:
+            send_message(f"🚨 {pair}\n\n{signal}")
 
-    elif score == 2:
-        print("👀 WATCHLIST")
+    print("\n⏳ Waiting 30 seconds...\n")
 
-    else:
-        print("⛔ NO TRADE")
+    time.sleep(30)
