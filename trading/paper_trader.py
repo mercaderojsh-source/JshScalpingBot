@@ -36,7 +36,7 @@ class PaperTrader:
         print(f"🛑 Stop Loss : {levels['stop_loss']}")
         print(f"🎯 Take Profit : {levels['take_profit']}")
 
-        return True
+        return self.position
 
     def check_exit(self, current_price):
 
