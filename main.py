@@ -4,13 +4,25 @@ from indicators.atr import calculate_atr
 from indicators.rsi import calculate_rsi
 from strategy.signal_engine import generate_signal
 
-print("=" * 40)
-print("🚀 SIGNAL ENGINE")
-print("=" * 40)
+PAIRS = [
+    "BTCUSDT",
+    "ETHUSDT",
+    "SOLUSDT",
+    "XRPUSDT",
+    "BGBUSDT"
+]
 
-candles = get_candles("BTCUSDT")
+print("=" * 50)
+print("🚀 JshScalpingBot Multi-Pair Scanner")
+print("=" * 50)
 
-if candles["code"] == "00000":
+for pair in PAIRS:
+
+    candles = get_candles(pair)
+
+    if candles["code"] != "00000":
+        print(pair, "ERROR")
+        continue
 
     closes = [float(c[4]) for c in candles["data"]]
     highs = [float(c[2]) for c in candles["data"]]
@@ -32,17 +44,20 @@ if candles["code"] == "00000":
     )
 
     print()
-    print("Signal Score:", score, "/3")
-    print()
+    print("=" * 40)
+    print(pair)
+    print("=" * 40)
+
+    print(f"Score : {score}/3")
 
     for reason in reasons:
         print(reason)
 
-    print()
-
     if score == 3:
-        print("🚀 STRONG TRADE SETUP")
+        print("🚀 STRONG SETUP")
+
     elif score == 2:
         print("👀 WATCHLIST")
+
     else:
         print("⛔ NO TRADE")
