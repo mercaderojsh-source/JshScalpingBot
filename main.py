@@ -15,6 +15,8 @@ from scanner.volatility_ranker import (
     rank_pairs,
 )
 
+from trading.paper_trader import PaperTrader
+
 from telegram.telegram_bot import send_message
 
 
@@ -26,13 +28,14 @@ PAIRS = [
     "BGBUSDT"
 ]
 
+# Create the paper trader
+trader = PaperTrader()
 
 print("=" * 60)
 print("🚀 JshScalpingBot Intelligent Scanner")
 print("=" * 60)
 
 send_message("🤖 JshScalpingBot Intelligent Scanner Started")
-
 
 while True:
 
@@ -62,7 +65,6 @@ while True:
         ema50 = calculate_ema(closes, 50)
 
         atr = calculate_atr(highs, lows, closes)
-
         rsi = calculate_rsi(closes)
 
         signal = generate_signal(
@@ -96,6 +98,7 @@ while True:
 
         results.append({
             "pair": pair,
+            "price": price,
             "signal": signal,
             "setup": setup,
             "confidence": confidence,
@@ -108,25 +111,36 @@ while True:
 
     for index, item in enumerate(ranked, start=1):
 
-        print(
-            f"{index}. {item['pair']}"
-        )
-
-        print(
-            f"   Setup       : {item['setup']}"
-        )
-
-        print(
-            f"   Confidence  : {item['confidence']}%"
-        )
-
-        print(
-            f"   Volatility  : {item['volatility_score']}"
-        )
-
+        print(f"{index}. {item['pair']}")
+        print(f"   Setup       : {item['setup']}")
+        print(f"   Confidence  : {item['confidence']}%")
+        print(f"   Volatility  : {item['volatility_score']}")
         print()
 
         if (
+            trader.position is None
+            and item["confidence"] >= 80
+        ):
+
+            direction = "BUY"
+
+            if "SELL" in item["setup"]:
+                direction = "SELL"
+
+            trader.open_trade(
+                item["pair"],
+                direction,
+                item["price"]
+            )
+
+            send_message(
+                f"📈 PAPER TRADE OPEN\n\n"
+                f"{item['pair']}\n"
+                f"{direction}\n"
+                f"Entry: {item['price']}"
+            )
+
+        elif (
             item["confidence"] >= 80
             and item["volatility_score"] >= 5
         ):
@@ -139,6 +153,17 @@ while True:
                 f"Volatility: {item['volatility_score']}"
             )
 
-    print("⏳ Waiting 30 seconds...\n")
+    stats = trader.stats()
+
+    print("=" * 60)
+    print("📊 PAPER ACCOUNT")
+    print("=" * 60)
+    print(f"Balance : ${stats['balance']}")
+    print(f"Trades  : {stats['trades']}")
+    print(f"Wins    : {stats['wins']}")
+    print(f"Losses  : {stats['losses']}")
+    print(f"WinRate : {stats['win_rate']}%")
+
+    print("\n⏳ Waiting 30 seconds...\n")
 
     time.sleep(30)
