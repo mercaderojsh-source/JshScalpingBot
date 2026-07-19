@@ -116,6 +116,7 @@ while True:
         results.append({
             "pair": pair,
             "price": price,
+            "atr": atr,
             "signal": signal,
             "setup": setup,
             "confidence": confidence,
@@ -211,14 +212,16 @@ while True:
             trader.open_trade(
                 best["pair"],
                 direction,
-                best["price"]
+                best["price"],
+                best["atr"]
             )
 
             send_message(
                 f"📈 PAPER TRADE OPEN\n\n"
                 f"{best['pair']}\n"
                 f"{direction}\n"
-                f"Entry: {best['price']}"
+                f"Entry : {best['price']}\n"
+                f"ATR   : {round(best['atr'], 4)}"
             )
 
     # -----------------------------
