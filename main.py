@@ -13,6 +13,7 @@ from strategy.confidence import confidence_score
 from scanner.volatility_ranker import volatility_score, rank_pairs
 
 from trading.paper_trader import PaperTrader
+from trading.trade_journal import TradeJournal
 
 from telegram.telegram_bot import send_message
 
@@ -28,6 +29,7 @@ PAIRS = [
 SCAN_INTERVAL = 30
 
 trader = PaperTrader()
+journal = TradeJournal()
 
 print("=" * 60)
 print("🚀 JshScalpingBot Intelligent Scanner")
@@ -107,7 +109,6 @@ while True:
             "volatility_score": vol
         })
 
-    # Safety check
     if not results:
         print("⚠️ No market data received.")
         time.sleep(SCAN_INTERVAL)
@@ -130,14 +131,24 @@ while True:
 
                 if exit_signal:
 
-                    pnl = trader.close_trade(item["price"])
+                    trade = trader.close_trade(item["price"])
+
+                    journal.log_trade(
+                        pair=trade["pair"],
+                        direction=trade["direction"],
+                        entry=trade["entry"],
+                        exit_price=trade["exit"],
+                        pnl=trade["pnl"],
+                        reason=exit_signal,
+                        balance=trade["balance"]
+                    )
 
                     send_message(
                         f"💰 PAPER TRADE CLOSED\n\n"
-                        f"{active_pair}\n"
+                        f"{trade['pair']}\n"
                         f"Exit: {exit_signal}\n"
-                        f"PnL: {round(pnl,2)}\n"
-                        f"Balance: ${trader.balance:.2f}"
+                        f"PnL: {round(trade['pnl'],2)}\n"
+                        f"Balance: ${trade['balance']:.2f}"
                     )
 
                 break
