@@ -15,8 +15,9 @@ from indicators.rsi import calculate_rsi
 from strategy.signal_engine import generate_signal
 from strategy.setup_detector import detect_setup
 from strategy.confidence import confidence_score
+from strategy.score_engine import final_score
 
-from scanner.volatility_ranker import volatility_score, rank_pairs
+from scanner.volatility_ranker import volatility_score
 from scanner.market_state import market_state
 
 from trading.paper_trader import PaperTrader
@@ -105,6 +106,13 @@ while True:
             price
         )
 
+        score = final_score(
+            confidence,
+            vol,
+            state,
+            setup
+        )
+
         results.append({
             "pair": pair,
             "price": price,
@@ -112,7 +120,8 @@ while True:
             "setup": setup,
             "confidence": confidence,
             "volatility_score": vol,
-            "market_state": state
+            "market_state": state,
+            "score": score
         })
 
     if not results:
@@ -120,7 +129,14 @@ while True:
         time.sleep(SCAN_INTERVAL)
         continue
 
-    ranked = rank_pairs(results)
+    # -----------------------------
+    # Rank by overall score
+    # -----------------------------
+    ranked = sorted(
+        results,
+        key=lambda x: x["score"],
+        reverse=True
+    )
 
     # -----------------------------
     # Check active paper trade
@@ -171,6 +187,7 @@ while True:
         print(f"   Setup : {item['setup']}")
         print(f"   Conf  : {item['confidence']}%")
         print(f"   Vol   : {item['volatility_score']}")
+        print(f"   Score : {item['score']}")
         print()
 
     # -----------------------------
@@ -183,8 +200,7 @@ while True:
         if (
             best["confidence"] >= CONFIDENCE_THRESHOLD
             and "WATCHLIST" not in best["setup"]
-            and best["market_state"] != "🌊 RANGING"
-            and best["market_state"] != "😴 QUIET"
+            and best["market_state"] not in ["🌊 RANGING", "😴 QUIET"]
         ):
 
             direction = "BUY"
