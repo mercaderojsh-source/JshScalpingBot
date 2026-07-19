@@ -22,7 +22,7 @@ class PaperTrader:
 
         return True
 
-    def close_trade(self, price):
+    def check_exit(self, current_price):
 
         if self.position is None:
             return None
@@ -31,9 +31,35 @@ class PaperTrader:
         direction = self.position["direction"]
 
         if direction == "BUY":
-            pnl = price - entry
+
+            if current_price >= entry * 1.01:
+                return "TP"
+
+            if current_price <= entry * 0.995:
+                return "SL"
+
         else:
-            pnl = entry - price
+
+            if current_price <= entry * 0.99:
+                return "TP"
+
+            if current_price >= entry * 1.005:
+                return "SL"
+
+        return None
+
+    def close_trade(self, current_price):
+
+        if self.position is None:
+            return
+
+        entry = self.position["entry"]
+        direction = self.position["direction"]
+
+        if direction == "BUY":
+            pnl = current_price - entry
+        else:
+            pnl = entry - current_price
 
         self.balance += pnl
 
@@ -44,9 +70,9 @@ class PaperTrader:
         else:
             self.losses += 1
 
-        print(f"💰 CLOSE Trade")
-        print(f"PnL: {round(pnl,2)}")
-        print(f"Balance: {round(self.balance,2)}")
+        print(f"💰 CLOSE {self.position['pair']}")
+        print(f"PnL : {round(pnl,2)}")
+        print(f"Balance : {round(self.balance,2)}")
 
         self.position = None
 
