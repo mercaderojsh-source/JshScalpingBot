@@ -107,6 +107,31 @@ while True:
 
     ranked = rank_pairs(results)
 
+# Check existing paper trade
+if trader.position is not None:
+
+    active_pair = trader.position["pair"]
+
+    for item in ranked:
+
+        if item["pair"] == active_pair:
+
+            exit_signal = trader.check_exit(item["price"])
+
+            if exit_signal is not None:
+
+                pnl = trader.close_trade(item["price"])
+
+                send_message(
+                    f"💰 PAPER TRADE CLOSED\n\n"
+                    f"{active_pair}\n"
+                    f"Exit: {exit_signal}\n"
+                    f"PnL: {round(pnl, 2)}\n"
+                    f"Balance: ${trader.balance:.2f}"
+                )
+
+            break
+
     print("\n🔥 TOP OPPORTUNITIES\n")
 
     for index, item in enumerate(ranked, start=1):
