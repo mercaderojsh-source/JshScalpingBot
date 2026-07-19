@@ -1,32 +1,17 @@
-import pandas as pd
+def calculate_atr(highs, lows, closes, period=14):
+    if len(highs) < period + 1:
+        return None
 
+    true_ranges = []
 
-def calculate_atr(candles, period=14):
+    for i in range(1, len(highs)):
+        tr = max(
+            highs[i] - lows[i],
+            abs(highs[i] - closes[i - 1]),
+            abs(lows[i] - closes[i - 1])
+        )
+        true_ranges.append(tr)
 
-    highs = []
-    lows = []
-    closes = []
+    atr = sum(true_ranges[-period:]) / period
 
-    # Bitget candles are oldest -> newest
-    for candle in candles:
-        highs.append(float(candle[2]))
-        lows.append(float(candle[3]))
-        closes.append(float(candle[4]))
-
-    df = pd.DataFrame({
-        "high": highs,
-        "low": lows,
-        "close": closes
-    })
-
-    previous_close = df["close"].shift(1)
-
-    tr = pd.concat([
-        df["high"] - df["low"],
-        (df["high"] - previous_close).abs(),
-        (df["low"] - previous_close).abs()
-    ], axis=1).max(axis=1)
-
-    atr = tr.rolling(period).mean()
-
-    return float(atr.iloc[-1])
+    return atr
