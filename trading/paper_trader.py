@@ -1,5 +1,6 @@
 from config import START_BALANCE
 from trading.risk_manager import calculate_levels
+from trading.position_sizer import calculate_position_size
 
 
 class PaperTrader:
@@ -22,6 +23,13 @@ class PaperTrader:
             direction=direction
         )
 
+        position_size = calculate_position_size(
+            balance=self.balance,
+            risk_percent=1.0,
+            entry_price=price,
+            stop_loss=levels["stop_loss"]
+        )
+
         self.position = {
             "pair": pair,
             "direction": direction,
@@ -29,10 +37,12 @@ class PaperTrader:
             "opened_at": price,
             "atr": atr,
             "stop_loss": levels["stop_loss"],
-            "take_profit": levels["take_profit"]
+            "take_profit": levels["take_profit"],
+            "size": position_size
         }
 
         print(f"📈 OPEN {direction} {pair} @ {price}")
+        print(f"📦 Position Size : {position_size}")
         print(f"🛑 Stop Loss : {levels['stop_loss']}")
         print(f"🎯 Take Profit : {levels['take_profit']}")
 
@@ -72,11 +82,12 @@ class PaperTrader:
 
         entry = self.position["entry"]
         direction = self.position["direction"]
+        size = self.position["size"]
 
         if direction == "BUY":
-            pnl = current_price - entry
+            pnl = (current_price - entry) * size
         else:
-            pnl = entry - current_price
+            pnl = (entry - current_price) * size
 
         self.balance += pnl
         self.trade_count += 1
@@ -98,7 +109,8 @@ class PaperTrader:
             "pnl": pnl,
             "balance": self.balance,
             "stop_loss": self.position["stop_loss"],
-            "take_profit": self.position["take_profit"]
+            "take_profit": self.position["take_profit"],
+            "size": self.position["size"]
         }
 
         self.position = None
