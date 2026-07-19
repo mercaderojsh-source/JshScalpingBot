@@ -1,41 +1,33 @@
 import time
-from exchange.bitget import get_ticker
-from telegram.telegram_bot import send_message
 
-PAIRS = [
-    "BTCUSDT",
-    "ETHUSDT",
-    "SOLUSDT",
-    "XRPUSDT",
-    "BGBUSDT"
-]
+from scanner.scanner import scan_market
+from telegram.telegram_bot import send_message
 
 
 def main():
+
     print("=" * 40)
     print("🚀 JshScalpingBot Started")
     print("=" * 40)
 
-    send_message(
-        "🚀 JshScalpingBot Online\n\n"
-        "✅ Railway Connected\n"
-        "✅ Bitget Connected\n"
-        "📈 Monitoring:\n"
-        "BTC • ETH • SOL • XRP • BGB"
-    )
+    send_message("🚀 JshScalpingBot Scanner Started")
 
     while True:
-        for pair in PAIRS:
-            data = get_ticker(pair)
 
-            if data["code"] == "00000":
-                price = data["data"][0]["lastPr"]
-                print(f"{pair}: {price}")
-            else:
-                print(f"{pair}: ERROR")
+        market = scan_market()
 
-        print("-" * 40)
-        time.sleep(1)
+        for pair, info in market.items():
+
+            print(
+                f"{pair} | "
+                f"Price: {info['price']} | "
+                f"24h: {info['change']:.2%} | "
+                f"Volume: {info['volume']:.0f}"
+            )
+
+        print("-" * 60)
+
+        time.sleep(5)
 
 
 if __name__ == "__main__":
