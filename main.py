@@ -10,10 +10,7 @@ from strategy.signal_engine import generate_signal
 from strategy.setup_detector import detect_setup
 from strategy.confidence import confidence_score
 
-from scanner.volatility_ranker import (
-    volatility_score,
-    rank_pairs,
-)
+from scanner.volatility_ranker import volatility_score, rank_pairs
 
 from trading.paper_trader import PaperTrader
 
@@ -28,14 +25,16 @@ PAIRS = [
     "BGBUSDT"
 ]
 
-# Create the paper trader
+SCAN_INTERVAL = 30
+
 trader = PaperTrader()
 
 print("=" * 60)
 print("🚀 JshScalpingBot Intelligent Scanner")
 print("=" * 60)
 
-send_message("🤖 JshScalpingBot Intelligent Scanner Started")
+send_message("🤖 JshScalpingBot Started")
+
 
 while True:
 
@@ -45,11 +44,14 @@ while True:
 
     results = []
 
+    # -----------------------------
+    # Scan all pairs
+    # -----------------------------
     for pair in PAIRS:
 
         response = get_candles(pair)
 
-        if response["code"] != "00000":
+        if response.get("code") != "00000":
             continue
 
         candles = response["data"]
@@ -91,7 +93,7 @@ while True:
             atr
         )
 
-        vol_score = volatility_score(
+        vol = volatility_score(
             atr,
             price
         )
@@ -102,93 +104,91 @@ while True:
             "signal": signal,
             "setup": setup,
             "confidence": confidence,
-            "volatility_score": vol_score
+            "volatility": vol
         })
 
     ranked = rank_pairs(results)
 
-# Check existing paper trade
-if trader.position is not None:
+    # -----------------------------
+    # Check active paper trade
+    # -----------------------------
+    if trader.position is not None:
 
-    active_pair = trader.position["pair"]
+        active_pair = trader.position["pair"]
 
-    for item in ranked:
+        for item in ranked:
 
-        if item["pair"] == active_pair:
+            if item["pair"] == active_pair:
 
-            exit_signal = trader.check_exit(item["price"])
+                exit_signal = trader.check_exit(item["price"])
 
-            if exit_signal is not None:
+                if exit_signal:
 
-                pnl = trader.close_trade(item["price"])
+                    pnl = trader.close_trade(item["price"])
 
-                send_message(
-                    f"💰 PAPER TRADE CLOSED\n\n"
-                    f"{active_pair}\n"
-                    f"Exit: {exit_signal}\n"
-                    f"PnL: {round(pnl, 2)}\n"
-                    f"Balance: ${trader.balance:.2f}"
-                )
+                    send_message(
+                        f"💰 PAPER TRADE CLOSED\n\n"
+                        f"{active_pair}\n"
+                        f"Exit: {exit_signal}\n"
+                        f"PnL: {round(pnl,2)}\n"
+                        f"Balance: ${trader.balance:.2f}"
+                    )
 
-            break
+                break
 
+    # -----------------------------
+    # Print rankings
+    # -----------------------------
     print("\n🔥 TOP OPPORTUNITIES\n")
 
     for index, item in enumerate(ranked, start=1):
 
-        print(f"{index}. {item['pair']}")
-        print(f"   Setup       : {item['setup']}")
-        print(f"   Confidence  : {item['confidence']}%")
-        print(f"   Volatility  : {item['volatility_score']}")
-        print()
+        print(
+            f"{index}. {item['pair']} | "
+            f"{item['setup']} | "
+            f"Conf: {item['confidence']}% | "
+            f"Vol: {item['volatility']}"
+        )
 
-        if (
-            trader.position is None
-            and item["confidence"] >= 40
-        ):
+    # -----------------------------
+    # Open new paper trade
+    # -----------------------------
+    if trader.position is None:
+
+        best = ranked[0]
+
+        if best["confidence"] >= 40:
 
             direction = "BUY"
 
-            if "SELL" in item["setup"]:
+            if "SELL" in best["setup"]:
                 direction = "SELL"
 
             trader.open_trade(
-                item["pair"],
+                best["pair"],
                 direction,
-                item["price"]
+                best["price"]
             )
 
             send_message(
                 f"📈 PAPER TRADE OPEN\n\n"
-                f"{item['pair']}\n"
+                f"{best['pair']}\n"
                 f"{direction}\n"
-                f"Entry: {item['price']}"
+                f"Entry: {best['price']}"
             )
 
-        elif (
-            item["confidence"] >= 80
-            and item["volatility_score"] >= 5
-        ):
-
-            send_message(
-                f"🔥 TOP SCALPING SETUP\n\n"
-                f"{item['pair']}\n\n"
-                f"{item['setup']}\n"
-                f"Confidence: {item['confidence']}%\n"
-                f"Volatility: {item['volatility_score']}"
-            )
-
+    # -----------------------------
+    # Account Stats
+    # -----------------------------
     stats = trader.stats()
 
-    print("=" * 60)
-    print("📊 PAPER ACCOUNT")
-    print("=" * 60)
+    print("\n📊 PAPER ACCOUNT")
     print(f"Balance : ${stats['balance']}")
     print(f"Trades  : {stats['trades']}")
     print(f"Wins    : {stats['wins']}")
     print(f"Losses  : {stats['losses']}")
     print(f"WinRate : {stats['win_rate']}%")
 
-    print("\n⏳ Waiting 30 seconds...\n")
+    print(f"\n⏳ Waiting {SCAN_INTERVAL} seconds...\n")
 
-    time.sleep(30)
+    time.sleep(SCAN_INTERVAL)
