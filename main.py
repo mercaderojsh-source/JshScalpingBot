@@ -246,17 +246,15 @@ while True:
 # -----------------------------
 if trader.position is None:
 
-    # Skip WATCHLIST setups
-    tradable = [
-        item for item in ranked
-        if "WATCHLIST" not in item["setup"]
-    ]
+    trade_found = False
 
-    if tradable:
+    for best in ranked:
 
-        best = tradable[0]
+        # Skip WATCHLIST setups
+        if "WATCHLIST" in best["setup"]:
+            continue
 
-        print("\n🎯 BEST TRADABLE SETUP")
+        print("\n🎯 CHECKING SETUP")
         print(f"Pair        : {best['pair']}")
         print(f"Setup       : {best['setup']}")
         print(f"State       : {best['market_state']}")
@@ -264,37 +262,44 @@ if trader.position is None:
         print(f"RSI         : {best['rsi']:.2f}")
         print(f"ATR %       : {best['atr_percent']:.2f}%")
 
-        if confirm_entry(
+        if not confirm_entry(
             setup=best["setup"],
             market_state=best["market_state"],
             score=best["score"],
             rsi=best["rsi"],
             atr_percent=best["atr_percent"]
         ):
+            continue
 
-            direction = "BUY"
+        direction = "BUY"
 
-            if "SELL" in best["setup"]:
-                direction = "SELL"
+        if "SELL" in best["setup"]:
+            direction = "SELL"
 
-            trade = trader.open_trade(
-                best["pair"],
-                direction,
-                best["price"],
-                best["atr"]
-            )
+        trade = trader.open_trade(
+            best["pair"],
+            direction,
+            best["price"],
+            best["atr"]
+        )
 
-            send_message(
-                f"📈 PAPER TRADE OPEN\n\n"
-                f"Pair : {trade['pair']}\n"
-                f"Side : {trade['direction']}\n"
-                f"Entry : {trade['entry']:.4f}\n"
-                f"ATR   : {trade['atr']:.4f}\n"
-                f"SL    : {trade['stop_loss']:.4f}\n"
-                f"TP    : {trade['take_profit']:.4f}\n"
-                f"Size  : {trade['size']:.6f}\n"
-                f"Score : {best['score']}"
-            )
+        send_message(
+            f"📈 PAPER TRADE OPEN\n\n"
+            f"Pair : {trade['pair']}\n"
+            f"Side : {trade['direction']}\n"
+            f"Entry : {trade['entry']:.4f}\n"
+            f"ATR   : {trade['atr']:.4f}\n"
+            f"SL    : {trade['stop_loss']:.4f}\n"
+            f"TP    : {trade['take_profit']:.4f}\n"
+            f"Size  : {trade['size']:.6f}\n"
+            f"Score : {best['score']}"
+        )
+
+        trade_found = True
+        break
+
+    if not trade_found:
+        print("\n❌ No valid trade found this scan.")
 
     # -----------------------------
     # Account Stats
