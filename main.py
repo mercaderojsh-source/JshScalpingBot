@@ -40,7 +40,9 @@ send_message("🤖 JshScalpingBot Started")
 from trading.live_trader import LiveTrader
 
 live = LiveTrader()
+
 live.get_account_info()
+live.get_open_positions()
 
 exit()
 
