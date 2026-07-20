@@ -1,4 +1,10 @@
-def final_score(confidence, volatility, market_state, setup):
+def final_score(
+    confidence,
+    volatility,
+    trend_strength,
+    market_state,
+    setup
+):
     """
     Returns a score out of 100.
     Higher is better.
@@ -8,6 +14,9 @@ def final_score(confidence, volatility, market_state, setup):
 
     # Reward volatility
     score += min(volatility, 15)
+
+    # Reward trend strength
+    score += trend_strength
 
     # Reward market state
     if "EXPLOSIVE" in market_state:
@@ -25,7 +34,6 @@ def final_score(confidence, volatility, market_state, setup):
     if "WATCHLIST" in setup:
         score -= 35
 
-    # Keep score between 0 and 100
     score = max(0, min(score, 100))
 
     return round(score, 1)
