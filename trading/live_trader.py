@@ -1,4 +1,18 @@
-from exchange.bitget import get_futures_account, get_positions
+import time
+
+from config import LEVERAGE
+
+from exchange.bitget import (
+    get_futures_account,
+    get_positions,
+    get_symbol_rules,
+    set_leverage,
+    place_market_order,
+    place_stop_loss,
+    place_take_profit,
+)
+
+from trading.position_sizer import calculate_position_size
 
 
 class LiveTrader:
@@ -76,3 +90,116 @@ class LiveTrader:
         print("====================================")
 
         return open_positions
+
+    def execute_trade(
+        self,
+        symbol,
+        side,
+        entry_price,
+        stop_loss,
+        take_profit,
+        risk_percent
+    ):
+        """
+        Executes a complete live trade.
+        """
+
+        print("\n========== EXECUTE LIVE TRADE ==========")
+
+        balance = self.get_balance()
+
+        if balance is None:
+            return {
+                "success": False,
+                "step": "balance"
+            }
+
+        rules = get_symbol_rules(symbol)
+
+        if rules is None:
+            return {
+                "success": False,
+                "step": "symbol_rules"
+            }
+
+        size = calculate_position_size(
+            balance=balance,
+            risk_percent=risk_percent,
+            entry_price=entry_price,
+            stop_loss=stop_loss,
+            symbol_rules=rules
+        )
+
+        if size <= 0:
+            return {
+                "success": False,
+                "step": "position_size"
+            }
+
+        hold_side = "long" if side == "buy" else "short"
+
+        response = set_leverage(
+            symbol,
+            LEVERAGE,
+            hold_side
+        )
+
+        if response.get("code") != "00000":
+            return {
+                "success": False,
+                "step": "set_leverage",
+                "response": response
+            }
+
+        response = place_market_order(
+            symbol=symbol,
+            side=side,
+            size=size
+        )
+
+        if response.get("code") != "00000":
+            return {
+                "success": False,
+                "step": "market_order",
+                "response": response
+            }
+
+        time.sleep(3)
+
+        response = place_stop_loss(
+            symbol=symbol,
+            hold_side=hold_side,
+            stop_loss=stop_loss
+        )
+
+        if response.get("code") != "00000":
+            return {
+                "success": False,
+                "step": "stop_loss",
+                "response": response
+            }
+
+        response = place_take_profit(
+            symbol=symbol,
+            hold_side=hold_side,
+            take_profit=take_profit
+        )
+
+        if response.get("code") != "00000":
+            return {
+                "success": False,
+                "step": "take_profit",
+                "response": response
+            }
+
+        print("✅ Live trade executed successfully.")
+
+        return {
+            "success": True,
+            "symbol": symbol,
+            "side": side,
+            "size": size,
+            "entry": entry_price,
+            "stop_loss": stop_loss,
+            "take_profit": take_profit
+        }
