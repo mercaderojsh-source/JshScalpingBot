@@ -241,12 +241,20 @@ while True:
         print(f"   Score : {item['score']}")
         print()
 
-    # -----------------------------
+        # -----------------------------
     # Open new paper trade
     # -----------------------------
     if trader.position is None:
 
         best = ranked[0]
+
+        print("\n🎯 BEST SETUP")
+        print(f"Pair        : {best['pair']}")
+        print(f"Setup       : {best['setup']}")
+        print(f"State       : {best['market_state']}")
+        print(f"Score       : {best['score']:.1f}")
+        print(f"RSI         : {best['rsi']:.2f}")
+        print(f"ATR %       : {best['atr_percent']:.2f}%")
 
         if confirm_entry(
             setup=best["setup"],
