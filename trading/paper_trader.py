@@ -90,6 +90,44 @@ class PaperTrader:
 
         return None
 
+    def manage_trade(self, current_price):
+
+        if self.position is None:
+            return None
+
+        # Already protected
+        if self.position["break_even"]:
+            return None
+
+        entry = self.position["entry"]
+        initial_stop = self.position["initial_stop"]
+        direction = self.position["direction"]
+
+        # Initial risk (1R)
+        risk = abs(entry - initial_stop)
+
+        if risk == 0:
+            return None
+
+        if direction == "BUY":
+            profit = current_price - entry
+        else:
+            profit = entry - current_price
+
+        r_multiple = profit / risk
+
+        # Move stop to break-even after +1R
+        if r_multiple >= 1:
+
+            self.position["stop_loss"] = entry
+            self.position["break_even"] = True
+
+            print(f"🛡 Break-even activated for {self.position['pair']}")
+
+            return "BREAK_EVEN"
+
+        return None
+
     def close_trade(self, current_price):
 
         if self.position is None:
