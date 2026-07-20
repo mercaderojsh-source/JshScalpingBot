@@ -158,6 +158,9 @@ while True:
                 # Manage the trade first
                 event = trader.manage_trade(item["price"])
 
+                # -----------------------------
+                # Break-even activated
+                # -----------------------------
                 if event == "BREAK_EVEN":
 
                     print(f"🛡 Break-even activated for {trader.position['pair']}")
@@ -167,6 +170,23 @@ while True:
                         f"Pair : {trader.position['pair']}\n"
                         f"New Stop : {trader.position['stop_loss']:.4f}"
                     )
+
+                # -----------------------------
+                # Partial Take Profit
+                # -----------------------------
+                elif isinstance(event, dict):
+
+                    if event.get("event") == "PARTIAL_TP":
+
+                        print(f"💵 Partial Take Profit for {event['pair']}")
+
+                        send_message(
+                            f"💵 PARTIAL TAKE PROFIT\n\n"
+                            f"Pair : {event['pair']}\n"
+                            f"Realized PnL : ${event['pnl']:.2f}\n"
+                            f"Remaining Size : {event['remaining_size']:.6f}\n"
+                            f"Balance : ${event['balance']:.2f}"
+                        )
 
                 # Then check exit conditions
                 exit_signal = trader.check_exit(item["price"])
