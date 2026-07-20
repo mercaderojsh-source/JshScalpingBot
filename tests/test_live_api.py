@@ -27,12 +27,17 @@ def main():
     print(response)
 
     print("\n===== TEST MARKET ORDER =====")
-    response = place_market_order(
-        symbol="BTCUSDT",
-        side="buy",
-        size=0.0001
-    )
-    print(response)
+
+    try:
+        response = place_market_order(
+            symbol="BTCUSDT",
+            side="buy",
+            size=0.0001
+        )
+        print(response)
+
+    except Exception as e:
+        print("EXCEPTION:", e)
 
 
 if __name__ == "__main__":
