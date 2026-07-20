@@ -1,5 +1,6 @@
 import os
 import time
+import json
 import hmac
 import base64
 import hashlib
@@ -69,6 +70,38 @@ def _private_get(request_path, params=None):
     return response.json()
 
 
+def _private_post(request_path, body=None):
+    body = body or {}
+
+    body_json = json.dumps(body, separators=(",", ":"))
+
+    timestamp = str(int(time.time() * 1000))
+
+    headers = {
+        "ACCESS-KEY": API_KEY,
+        "ACCESS-SIGN": _sign(
+            timestamp,
+            "POST",
+            request_path,
+            body=body_json
+        ),
+        "ACCESS-TIMESTAMP": timestamp,
+        "ACCESS-PASSPHRASE": API_PASSPHRASE,
+        "Content-Type": "application/json",
+        "locale": "en-US"
+    }
+
+    url = BASE_URL + request_path
+
+    response = requests.post(
+        url,
+        headers=headers,
+        data=body_json
+    )
+
+    return response.json()
+
+
 def get_futures_account():
     return _private_get(
         "/api/v2/mix/account/accounts",
@@ -88,4 +121,29 @@ def get_positions():
             "productType": "USDT-FUTURES",
             "marginCoin": "USDT"
         }
+    )
+
+
+def place_market_order(symbol, side, size):
+    """
+    Places a USDT perpetual market order.
+
+    side:
+        buy  = open long
+        sell = open short
+    """
+
+    body = {
+        "symbol": symbol,
+        "productType": "USDT-FUTURES",
+        "marginMode": "crossed",
+        "marginCoin": "USDT",
+        "side": side,
+        "orderType": "market",
+        "size": str(size)
+    }
+
+    return _private_post(
+        "/api/v2/mix/order/place-order",
+        body
     )
