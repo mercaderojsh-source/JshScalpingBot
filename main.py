@@ -3,6 +3,7 @@ import time
 from config import (
     PAIRS,
     SCAN_INTERVAL,
+    LIVE_TRADING,
 )
 
 from exchange.bitget import get_candles
@@ -23,12 +24,19 @@ from scanner.volatility_ranker import volatility_score
 from scanner.market_state import market_state
 
 from trading.paper_trader import PaperTrader
+from trading.live_trader import LiveTrader
 from trading.trade_journal import TradeJournal
 
 from telegram.telegram_bot import send_message
 
 
-trader = PaperTrader()
+if LIVE_TRADING:
+    trader = LiveTrader()
+    print("🟢 LIVE TRADING ENABLED")
+else:
+    trader = PaperTrader()
+    print("🟡 PAPER TRADING ENABLED")
+
 journal = TradeJournal()
 
 print("=" * 60)
@@ -36,12 +44,6 @@ print("🚀 JshScalpingBot Intelligent Scanner")
 print("=" * 60)
 
 send_message("🤖 JshScalpingBot Started")
-
-from tests.test_live_api import main as live_test
-
-live_test()
-
-exit()
 
 while True:
 
@@ -108,9 +110,9 @@ while True:
         )
 
         print(
-        f"{pair} | EMA Gap %: "
-        f"{((abs(ema9-ema21)+abs(ema21-ema50))/ price)*100:.4f}% "
-        f"| Trend Score: {trend}"
+            f"{pair} | EMA Gap %: "
+            f"{((abs(ema9-ema21)+abs(ema21-ema50))/price)*100:.4f}% "
+            f"| Trend Score: {trend}"
         )
 
         state = market_state(
@@ -121,9 +123,6 @@ while True:
             rsi
         )
 
-        # -----------------------------
-        # Higher Timeframe (5m)
-        # -----------------------------
         htf = higher_timeframe_trend(pair)
 
         vol = volatility_score(
@@ -141,9 +140,6 @@ while True:
             setup
         )
 
-        # -----------------------------
-        # Higher Timeframe Score Boost
-        # -----------------------------
         if "BUY" in setup and htf["trend"] == "BUY":
             score += 10
 
@@ -180,9 +176,6 @@ while True:
         time.sleep(SCAN_INTERVAL)
         continue
 
-    # -----------------------------
-    # Rank by overall score
-    # -----------------------------
     ranked = sorted(
         results,
         key=lambda x: x["score"],
@@ -190,9 +183,12 @@ while True:
     )
 
     # -----------------------------
-    # Check active paper trade
+    # Check active trade
     # -----------------------------
-    if trader.position is not None:
+    if (
+        not LIVE_TRADING
+        and trader.position is not None
+    ):
 
         active_pair = trader.position["pair"]
 
@@ -288,23 +284,28 @@ while True:
         print(f"   Score : {item['score']}")
         print()
 
-        # -----------------------------
-    # Open new paper trade
     # -----------------------------
-    if trader.position is None:
+    # Open new trade
+    # -----------------------------
+    if (
+        (not LIVE_TRADING and trader.position is None)
+        or LIVE_TRADING
+    ):
 
         trade_found = False
 
         for best in ranked:
 
-            # Skip pairs in cooldown
-            if trader.in_cooldown(best["pair"]):
+            # Skip pairs in cooldown (PaperTrader only)
+            if not LIVE_TRADING:
 
-                print(
-                    f"⏳ {best['pair']} still in cooldown..."
-                )
+                if trader.in_cooldown(best["pair"]):
 
-                continue
+                    print(
+                        f"⏳ {best['pair']} still in cooldown..."
+                    )
+
+                    continue
 
             # Skip WATCHLIST setups
             if "WATCHLIST" in best["setup"]:
@@ -333,7 +334,7 @@ while True:
             if "SELL" in best["setup"]:
                 direction = "SELL"
 
-            trade = trader.open_trade(
+            trade = trader.execute_trade(
                 best["pair"],
                 direction,
                 best["price"],
@@ -348,8 +349,10 @@ while True:
                 f"{trade['pair']} @ {trade['entry']:.4f}"
             )
 
+            mode = "LIVE" if LIVE_TRADING else "PAPER"
+
             send_message(
-                f"📈 PAPER TRADE OPEN\n\n"
+                f"📈 {mode} TRADE OPEN\n\n"
                 f"Pair : {trade['pair']}\n"
                 f"Side : {trade['direction']}\n"
                 f"HTF  : {best['higher_timeframe']}\n"
@@ -370,44 +373,57 @@ while True:
     # -----------------------------
     # Account Statistics
     # -----------------------------
-    stats = trader.stats()
+    if not LIVE_TRADING:
 
-    print("\n📊 PAPER ACCOUNT")
-    print(f"Balance : ${stats['balance']:.2f}")
-    print(f"Trades  : {stats['trades']}")
-    print(f"Wins    : {stats['wins']}")
-    print(f"Losses  : {stats['losses']}")
-    print(f"WinRate : {stats['win_rate']}%")
+        stats = trader.stats()
 
-    # Show active cooldowns
-    if stats.get("cooldowns"):
+        print("\n📊 PAPER ACCOUNT")
+        print(f"Balance : ${stats['balance']:.2f}")
+        print(f"Trades  : {stats['trades']}")
+        print(f"Wins    : {stats['wins']}")
+        print(f"Losses  : {stats['losses']}")
+        print(f"WinRate : {stats['win_rate']}%")
 
-        print("\n⏳ ACTIVE COOLDOWNS")
+        # Show active cooldowns
+        if stats.get("cooldowns"):
 
-        for pair, seconds in stats["cooldowns"].items():
+            print("\n⏳ ACTIVE COOLDOWNS")
 
-            mins = seconds // 60
-            secs = seconds % 60
+            for pair, seconds in stats["cooldowns"].items():
 
-            print(f"{pair} : {mins}m {secs}s")
+                mins = seconds // 60
+                secs = seconds % 60
 
-    if trader.position is not None:
+                print(f"{pair} : {mins}m {secs}s")
 
-        print("\n📌 ACTIVE POSITION")
-        print(f"Pair      : {trader.position['pair']}")
-        print(f"Side      : {trader.position['direction']}")
-        print(f"Entry     : {trader.position['entry']:.4f}")
-        print(f"Stop Loss : {trader.position['stop_loss']:.4f}")
-        print(f"TakeProfit: {trader.position['take_profit']:.4f}")
+        if trader.position is not None:
 
-        if trader.position["break_even"]:
-            print("Mode      : BREAK-EVEN")
+            print("\n📌 ACTIVE POSITION")
+            print(f"Pair      : {trader.position['pair']}")
+            print(f"Side      : {trader.position['direction']}")
+            print(f"Entry     : {trader.position['entry']:.4f}")
+            print(f"Stop Loss : {trader.position['stop_loss']:.4f}")
+            print(f"TakeProfit: {trader.position['take_profit']:.4f}")
 
-        if trader.position["partial_taken"]:
-            print("Mode      : TRAILING")
+            if trader.position["break_even"]:
+                print("Mode      : BREAK-EVEN")
+
+            if trader.position["partial_taken"]:
+                print("Mode      : TRAILING")
+
+        else:
+            print("\n📌 No Active Position")
 
     else:
-        print("\n📌 No Active Position")
+
+        print("\n📊 LIVE TRADING MODE")
+
+        positions = trader.get_open_positions()
+
+        if positions:
+            print(f"Open Positions : {len(positions)}")
+        else:
+            print("No Active Positions")
 
     print(f"\n⏳ Waiting {SCAN_INTERVAL} seconds...\n")
 
