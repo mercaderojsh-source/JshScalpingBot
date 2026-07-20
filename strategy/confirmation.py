@@ -1,3 +1,6 @@
+from config import MIN_SCORE
+
+
 def confirm_entry(
     setup,
     market_state,
@@ -16,12 +19,12 @@ def confirm_entry(
     if "WATCHLIST" in setup:
         return False
 
-    # Ignore ranging markets
+    # Ignore ranging/quiet markets
     if market_state in ["🌊 RANGING", "😴 QUIET"]:
         return False
 
-    # Require strong score
-    if score < 80:
+    # Require minimum strategy score
+    if score < MIN_SCORE:
         return False
 
     # Avoid chasing overextended moves
