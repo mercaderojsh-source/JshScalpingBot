@@ -231,7 +231,7 @@ def place_position_tpsl(
     if stop_loss is not None:
         body["stopLossTriggerPrice"] = str(stop_loss)
         body["stopLossTriggerType"] = "mark_price"
-        body["stopLossExecutePrice"] = "0"
+        body["stopLossExecutePrice"] = str(stop_loss)
 
     # Take Profit
     if take_profit is not None:
