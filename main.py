@@ -3,7 +3,6 @@ import time
 from config import (
     PAIRS,
     SCAN_INTERVAL,
-    MIN_SCORE,
 )
 
 from exchange.bitget import get_candles
@@ -172,10 +171,11 @@ while True:
                     )
 
                 # -----------------------------
-                # Partial Take Profit
+                # Trade Events
                 # -----------------------------
                 elif isinstance(event, dict):
 
+                    # Partial Take Profit
                     if event.get("event") == "PARTIAL_TP":
 
                         print(f"💵 Partial Take Profit for {event['pair']}")
@@ -186,6 +186,17 @@ while True:
                             f"Realized PnL : ${event['pnl']:.2f}\n"
                             f"Remaining Size : {event['remaining_size']:.6f}\n"
                             f"Balance : ${event['balance']:.2f}"
+                        )
+
+                    # ATR Trailing Stop
+                    elif event.get("event") == "TRAILING_STOP":
+
+                        print(f"📈 Trailing Stop Updated for {event['pair']}")
+
+                        send_message(
+                            f"📈 TRAILING STOP UPDATED\n\n"
+                            f"Pair : {event['pair']}\n"
+                            f"New Stop : {event['stop_loss']:.4f}"
                         )
 
                 # Then check exit conditions
@@ -208,9 +219,9 @@ while True:
                     send_message(
                         f"💰 PAPER TRADE CLOSED\n\n"
                         f"{trade['pair']}\n"
-                        f"Exit: {exit_signal}\n"
-                        f"PnL: {round(trade['pnl'], 2)}\n"
-                        f"Balance: ${trade['balance']:.2f}"
+                        f"Exit : {exit_signal}\n"
+                        f"PnL  : {round(trade['pnl'], 2)}\n"
+                        f"Balance : ${trade['balance']:.2f}"
                     )
 
                 break
@@ -261,12 +272,12 @@ while True:
                 f"📈 PAPER TRADE OPEN\n\n"
                 f"Pair : {trade['pair']}\n"
                 f"Side : {trade['direction']}\n"
-                f"Entry: {trade['entry']:.4f}\n"
-                f"ATR  : {trade['atr']:.4f}\n"
-                f"SL   : {trade['stop_loss']:.4f}\n"
-                f"TP   : {trade['take_profit']:.4f}\n"
-                f"Size : {trade['size']:.6f}\n"
-                f"Score: {best['score']}"
+                f"Entry : {trade['entry']:.4f}\n"
+                f"ATR   : {trade['atr']:.4f}\n"
+                f"SL    : {trade['stop_loss']:.4f}\n"
+                f"TP    : {trade['take_profit']:.4f}\n"
+                f"Size  : {trade['size']:.6f}\n"
+                f"Score : {best['score']}"
             )
 
     # -----------------------------
