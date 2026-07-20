@@ -14,6 +14,7 @@ from indicators.rsi import calculate_rsi
 from strategy.signal_engine import generate_signal
 from strategy.setup_detector import detect_setup
 from strategy.confidence import confidence_score
+from strategy.trend_strength import trend_strength
 from strategy.score_engine import final_score
 from strategy.confirmation import confirm_entry
 
@@ -93,6 +94,13 @@ while True:
             atr
         )
 
+        trend = trend_strength(
+            ema9,
+            ema21,
+            ema50,
+            price
+        )
+
         state = market_state(
             ema9,
             ema21,
@@ -111,6 +119,7 @@ while True:
         score = final_score(
             confidence,
             vol,
+            trend,
             state,
             setup
         )
@@ -124,6 +133,7 @@ while True:
             "signal": signal,
             "setup": setup,
             "confidence": confidence,
+            "trend_strength": trend,
             "volatility_score": vol,
             "market_state": state,
             "score": score
@@ -237,6 +247,7 @@ while True:
         print(f"   State : {item['market_state']}")
         print(f"   Setup : {item['setup']}")
         print(f"   Conf  : {item['confidence']}%")
+        print(f"   Trend : {item['trend_strength']}")
         print(f"   Vol   : {item['volatility_score']}")
         print(f"   Score : {item['score']}")
         print()
