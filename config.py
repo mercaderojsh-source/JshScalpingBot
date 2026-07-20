@@ -1,6 +1,13 @@
+import os
+
 # =========================
 # JshScalpingBot Configuration
 # =========================
+
+# Bitget API
+BITGET_API_KEY = os.getenv("BITGET_API_KEY")
+BITGET_API_SECRET = os.getenv("BITGET_API_SECRET")
+BITGET_API_PASSPHRASE = os.getenv("BITGET_API_PASSPHRASE")
 
 # Trading Pairs
 PAIRS = [
