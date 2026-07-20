@@ -155,6 +155,20 @@ while True:
 
             if item["pair"] == active_pair:
 
+                # Manage the trade first
+                event = trader.manage_trade(item["price"])
+
+                if event == "BREAK_EVEN":
+
+                    print(f"🛡 Break-even activated for {trader.position['pair']}")
+
+                    send_message(
+                        f"🛡 BREAK-EVEN ACTIVATED\n\n"
+                        f"Pair : {trader.position['pair']}\n"
+                        f"New Stop : {trader.position['stop_loss']:.4f}"
+                    )
+
+                # Then check exit conditions
                 exit_signal = trader.check_exit(item["price"])
 
                 if exit_signal:
