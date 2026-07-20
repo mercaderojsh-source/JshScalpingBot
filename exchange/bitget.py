@@ -6,6 +6,8 @@ import base64
 import hashlib
 import requests
 
+from config import MARGIN_MODE
+
 BASE_URL = "https://api.bitget.com"
 
 API_KEY = os.getenv("BITGET_API_KEY")
@@ -165,21 +167,26 @@ def get_positions():
     )
 
 
-def place_market_order(symbol, side, size):
+def place_market_order(symbol, side, size, trade_side="open"):
     """
     Places a USDT perpetual market order.
 
     side:
-        buy = open long
-        sell = open short
+        buy = long
+        sell = short
+
+    trade_side:
+        open = open a position
+        close = close a position
     """
 
     body = {
         "symbol": symbol,
         "productType": "USDT-FUTURES",
-        "marginMode": "crossed",
+        "marginMode": MARGIN_MODE,
         "marginCoin": "USDT",
         "side": side,
+        "tradeSide": trade_side,
         "orderType": "market",
         "size": str(size)
     }
