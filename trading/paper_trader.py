@@ -164,6 +164,51 @@ class PaperTrader:
                 "balance": self.balance
             }
 
+        # -----------------------------
+        # Stage 3: ATR Trailing Stop
+        # -----------------------------
+        if self.position["partial_taken"]:
+
+            atr = self.position["atr"]
+
+            if direction == "BUY":
+
+                new_stop = current_price - atr
+
+                if new_stop > self.position["stop_loss"]:
+
+                    self.position["stop_loss"] = new_stop
+
+                    print(
+                        f"📈 Trailing Stop Updated: "
+                        f"{self.position['pair']} -> {new_stop:.4f}"
+                    )
+
+                    return {
+                        "event": "TRAILING_STOP",
+                        "pair": self.position["pair"],
+                        "stop_loss": new_stop
+                    }
+
+            else:
+
+                new_stop = current_price + atr
+
+                if new_stop < self.position["stop_loss"]:
+
+                    self.position["stop_loss"] = new_stop
+
+                    print(
+                        f"📉 Trailing Stop Updated: "
+                        f"{self.position['pair']} -> {new_stop:.4f}"
+                    )
+
+                    return {
+                        "event": "TRAILING_STOP",
+                        "pair": self.position["pair"],
+                        "stop_loss": new_stop
+                    }
+
         return None
 
     def close_trade(self, current_price):
