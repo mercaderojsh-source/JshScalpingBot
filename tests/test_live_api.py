@@ -9,6 +9,8 @@ from config import LEVERAGE
 def main():
     live = LiveTrader()
 
+    print("********** TEST FILE IS RUNNING **********")
+
     print("\n===== ACCOUNT =====")
     live.get_account_info()
 
