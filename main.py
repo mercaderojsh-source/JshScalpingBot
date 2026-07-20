@@ -17,6 +17,7 @@ from strategy.confidence import confidence_score
 from strategy.trend_strength import trend_strength
 from strategy.score_engine import final_score
 from strategy.confirmation import confirm_entry
+from strategy.timeframe_filter import higher_timeframe_trend
 
 from scanner.volatility_ranker import volatility_score
 from scanner.market_state import market_state
@@ -109,6 +110,11 @@ while True:
             rsi
         )
 
+        # -----------------------------
+        # Higher Timeframe (5m)
+        # -----------------------------
+        htf = higher_timeframe_trend(pair)
+
         vol = volatility_score(
             atr,
             price
@@ -124,6 +130,24 @@ while True:
             setup
         )
 
+        # -----------------------------
+        # Higher Timeframe Score Boost
+        # -----------------------------
+        if "BUY" in setup and htf["trend"] == "BUY":
+            score += 10
+
+        elif "SELL" in setup and htf["trend"] == "SELL":
+            score += 10
+
+        elif (
+            ("BUY" in setup and htf["trend"] == "SELL")
+            or
+            ("SELL" in setup and htf["trend"] == "BUY")
+        ):
+            score -= 10
+
+        score = max(0, min(score, 100))
+
         results.append({
             "pair": pair,
             "price": price,
@@ -136,6 +160,7 @@ while True:
             "trend_strength": trend,
             "volatility_score": vol,
             "market_state": state,
+            "higher_timeframe": htf["trend"],
             "score": score
         })
 
@@ -162,79 +187,78 @@ while True:
 
         for item in ranked:
 
-            if item["pair"] == active_pair:
+            if item["pair"] != active_pair:
+                continue
 
-                # Manage the trade first
-                event = trader.manage_trade(item["price"])
+            # -----------------------------
+            # Manage trade
+            # -----------------------------
+            event = trader.manage_trade(item["price"])
 
-                # -----------------------------
-                # Break-even activated
-                # -----------------------------
-                if event == "BREAK_EVEN":
+            # Break-even
+            if event == "BREAK_EVEN":
 
-                    print(f"🛡 Break-even activated for {trader.position['pair']}")
+                print(f"🛡 Break-even activated for {trader.position['pair']}")
 
-                    send_message(
-                        f"🛡 BREAK-EVEN ACTIVATED\n\n"
-                        f"Pair : {trader.position['pair']}\n"
-                        f"New Stop : {trader.position['stop_loss']:.4f}"
-                    )
+                send_message(
+                    f"🛡 BREAK-EVEN ACTIVATED\n\n"
+                    f"Pair : {trader.position['pair']}\n"
+                    f"New Stop : {trader.position['stop_loss']:.4f}"
+                )
 
-                # -----------------------------
-                # Trade Events
-                # -----------------------------
-                elif isinstance(event, dict):
+            # Partial TP / Trailing Stop
+            elif isinstance(event, dict):
 
-                    # Partial Take Profit
-                    if event.get("event") == "PARTIAL_TP":
+                if event.get("event") == "PARTIAL_TP":
 
-                        print(f"💵 Partial Take Profit for {event['pair']}")
-
-                        send_message(
-                            f"💵 PARTIAL TAKE PROFIT\n\n"
-                            f"Pair : {event['pair']}\n"
-                            f"Realized PnL : ${event['pnl']:.2f}\n"
-                            f"Remaining Size : {event['remaining_size']:.6f}\n"
-                            f"Balance : ${event['balance']:.2f}"
-                        )
-
-                    # ATR Trailing Stop
-                    elif event.get("event") == "TRAILING_STOP":
-
-                        print(f"📈 Trailing Stop Updated for {event['pair']}")
-
-                        send_message(
-                            f"📈 TRAILING STOP UPDATED\n\n"
-                            f"Pair : {event['pair']}\n"
-                            f"New Stop : {event['stop_loss']:.4f}"
-                        )
-
-                # Then check exit conditions
-                exit_signal = trader.check_exit(item["price"])
-
-                if exit_signal:
-
-                    trade = trader.close_trade(item["price"])
-
-                    journal.log_trade(
-                        pair=trade["pair"],
-                        direction=trade["direction"],
-                        entry=trade["entry"],
-                        exit_price=trade["exit"],
-                        pnl=trade["pnl"],
-                        reason=exit_signal,
-                        balance=trade["balance"]
-                    )
+                    print(f"💵 Partial Take Profit for {event['pair']}")
 
                     send_message(
-                        f"💰 PAPER TRADE CLOSED\n\n"
-                        f"{trade['pair']}\n"
-                        f"Exit : {exit_signal}\n"
-                        f"PnL  : {round(trade['pnl'], 2)}\n"
-                        f"Balance : ${trade['balance']:.2f}"
+                        f"💵 PARTIAL TAKE PROFIT\n\n"
+                        f"Pair : {event['pair']}\n"
+                        f"Realized PnL : ${event['pnl']:.2f}\n"
+                        f"Remaining Size : {event['remaining_size']:.6f}\n"
+                        f"Balance : ${event['balance']:.2f}"
                     )
 
-                break
+                elif event.get("event") == "TRAILING_STOP":
+
+                    print(f"📈 Trailing Stop Updated for {event['pair']}")
+
+                    send_message(
+                        f"📈 TRAILING STOP UPDATED\n\n"
+                        f"Pair : {event['pair']}\n"
+                        f"New Stop : {event['stop_loss']:.4f}"
+                    )
+
+            # -----------------------------
+            # Exit Check
+            # -----------------------------
+            exit_signal = trader.check_exit(item["price"])
+
+            if exit_signal:
+
+                trade = trader.close_trade(item["price"])
+
+                journal.log_trade(
+                    pair=trade["pair"],
+                    direction=trade["direction"],
+                    entry=trade["entry"],
+                    exit_price=trade["exit"],
+                    pnl=trade["pnl"],
+                    reason=exit_signal,
+                    balance=trade["balance"]
+                )
+
+                send_message(
+                    f"💰 PAPER TRADE CLOSED\n\n"
+                    f"{trade['pair']}\n"
+                    f"Exit : {exit_signal}\n"
+                    f"PnL  : {round(trade['pnl'], 2)}\n"
+                    f"Balance : ${trade['balance']:.2f}"
+                )
+
+            break
 
     # -----------------------------
     # Print rankings
@@ -245,6 +269,7 @@ while True:
 
         print(f"{index}. {item['pair']}")
         print(f"   State : {item['market_state']}")
+        print(f"   HTF   : {item['higher_timeframe']}")
         print(f"   Setup : {item['setup']}")
         print(f"   Conf  : {item['confidence']}%")
         print(f"   Trend : {item['trend_strength']}")
@@ -252,77 +277,103 @@ while True:
         print(f"   Score : {item['score']}")
         print()
 
-        # -----------------------------
-# Open new paper trade
-# -----------------------------
-if trader.position is None:
+    # -----------------------------
+    # Open new paper trade
+    # -----------------------------
+    if trader.position is None:
 
-    trade_found = False
+        trade_found = False
 
-    for best in ranked:
+        for best in ranked:
 
-        # Skip WATCHLIST setups
-        if "WATCHLIST" in best["setup"]:
-            continue
+            # Skip WATCHLIST setups
+            if "WATCHLIST" in best["setup"]:
+                continue
 
-        print("\n🎯 CHECKING SETUP")
-        print(f"Pair        : {best['pair']}")
-        print(f"Setup       : {best['setup']}")
-        print(f"State       : {best['market_state']}")
-        print(f"Score       : {best['score']:.1f}")
-        print(f"RSI         : {best['rsi']:.2f}")
-        print(f"ATR %       : {best['atr_percent']:.2f}%")
+            print("\n🎯 CHECKING SETUP")
+            print(f"Pair        : {best['pair']}")
+            print(f"State       : {best['market_state']}")
+            print(f"HTF         : {best['higher_timeframe']}")
+            print(f"Setup       : {best['setup']}")
+            print(f"Score       : {best['score']:.1f}")
+            print(f"RSI         : {best['rsi']:.2f}")
+            print(f"ATR %       : {best['atr_percent']:.2f}%")
 
-        if not confirm_entry(
-            setup=best["setup"],
-            market_state=best["market_state"],
-            score=best["score"],
-            rsi=best["rsi"],
-            atr_percent=best["atr_percent"]
-        ):
-            continue
+            if not confirm_entry(
+                setup=best["setup"],
+                market_state=best["market_state"],
+                score=best["score"],
+                rsi=best["rsi"],
+                atr_percent=best["atr_percent"]
+            ):
+                continue
 
-        direction = "BUY"
+            direction = "BUY"
 
-        if "SELL" in best["setup"]:
-            direction = "SELL"
+            if "SELL" in best["setup"]:
+                direction = "SELL"
 
-        trade = trader.open_trade(
-            best["pair"],
-            direction,
-            best["price"],
-            best["atr"]
-        )
+            trade = trader.open_trade(
+                best["pair"],
+                direction,
+                best["price"],
+                best["atr"]
+            )
 
-        send_message(
-            f"📈 PAPER TRADE OPEN\n\n"
-            f"Pair : {trade['pair']}\n"
-            f"Side : {trade['direction']}\n"
-            f"Entry : {trade['entry']:.4f}\n"
-            f"ATR   : {trade['atr']:.4f}\n"
-            f"SL    : {trade['stop_loss']:.4f}\n"
-            f"TP    : {trade['take_profit']:.4f}\n"
-            f"Size  : {trade['size']:.6f}\n"
-            f"Score : {best['score']}"
-        )
+            print(
+                f"\n✅ OPENED {trade['direction']} "
+                f"{trade['pair']} @ {trade['entry']:.4f}"
+            )
 
-        trade_found = True
-        break
+            send_message(
+                f"📈 PAPER TRADE OPEN\n\n"
+                f"Pair : {trade['pair']}\n"
+                f"Side : {trade['direction']}\n"
+                f"HTF  : {best['higher_timeframe']}\n"
+                f"Entry : {trade['entry']:.4f}\n"
+                f"ATR   : {trade['atr']:.4f}\n"
+                f"SL    : {trade['stop_loss']:.4f}\n"
+                f"TP    : {trade['take_profit']:.4f}\n"
+                f"Size  : {trade['size']:.6f}\n"
+                f"Score : {best['score']}"
+            )
 
-    if not trade_found:
-        print("\n❌ No valid trade found this scan.")
+            trade_found = True
+            break
+
+        if not trade_found:
+
+            print("\n❌ No valid trade found this scan.")
 
     # -----------------------------
-    # Account Stats
+    # Account Statistics
     # -----------------------------
     stats = trader.stats()
 
     print("\n📊 PAPER ACCOUNT")
-    print(f"Balance : ${stats['balance']}")
+    print(f"Balance : ${stats['balance']:.2f}")
     print(f"Trades  : {stats['trades']}")
     print(f"Wins    : {stats['wins']}")
     print(f"Losses  : {stats['losses']}")
     print(f"WinRate : {stats['win_rate']}%")
+
+    if trader.position is not None:
+
+        print("\n📌 ACTIVE POSITION")
+        print(f"Pair      : {trader.position['pair']}")
+        print(f"Side      : {trader.position['direction']}")
+        print(f"Entry     : {trader.position['entry']:.4f}")
+        print(f"Stop Loss : {trader.position['stop_loss']:.4f}")
+        print(f"TakeProfit: {trader.position['take_profit']:.4f}")
+
+        if trader.position["break_even"]:
+            print("Mode      : BREAK-EVEN")
+
+        if trader.position["partial_taken"]:
+            print("Mode      : TRAILING")
+
+    else:
+        print("\n📌 No Active Position")
 
     print(f"\n⏳ Waiting {SCAN_INTERVAL} seconds...\n")
 
