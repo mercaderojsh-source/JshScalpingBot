@@ -295,7 +295,7 @@ while True:
             # Skip pairs in cooldown
             if trader.in_cooldown(best["pair"]):
 
-            print(
+                print(
                 f"⏳ {best['pair']} still in cooldown..."
             )
 
