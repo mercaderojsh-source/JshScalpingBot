@@ -42,9 +42,12 @@ def main():
         # Give Bitget time to register the new position
         time.sleep(3)
 
+        print("\n===== VERIFY POSITION =====")
+        live.get_open_positions()
+
         print("\n===== ATTACH STOP LOSS =====")
 
-        # Use a value safely below the current BTC price for a long position
+        # Test stop loss (below current BTC price for a long)
         stop_loss_price = 50000
 
         response = place_stop_loss(
