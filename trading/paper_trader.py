@@ -40,9 +40,20 @@ class PaperTrader:
             "entry": price,
             "opened_at": price,
             "atr": atr,
+
+            # Original risk level
+            "initial_stop": levels["stop_loss"],
+
+            # Active levels
             "stop_loss": levels["stop_loss"],
             "take_profit": levels["take_profit"],
-            "size": position_size
+
+            # Position sizing
+            "size": position_size,
+
+            # Trade management flags
+            "break_even": False,
+            "partial_taken": False
         }
 
         print(f"📈 OPEN {direction} {pair} @ {price}")
