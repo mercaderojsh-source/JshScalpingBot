@@ -237,7 +237,7 @@ def place_position_tpsl(
     if take_profit is not None:
         body["stopSurplusTriggerPrice"] = str(take_profit)
         body["stopSurplusTriggerType"] = "mark_price"
-        body["stopSurplusExecutePrice"] = "0"
+        body["stopSurplusExecutePrice"] = str(take_profit)
 
     return _private_post(
         "/api/v2/mix/order/place-pos-tpsl",
