@@ -242,13 +242,21 @@ while True:
         print()
 
         # -----------------------------
-    # Open new paper trade
-    # -----------------------------
-    if trader.position is None:
+# Open new paper trade
+# -----------------------------
+if trader.position is None:
 
-        best = ranked[0]
+    # Skip WATCHLIST setups
+    tradable = [
+        item for item in ranked
+        if "WATCHLIST" not in item["setup"]
+    ]
 
-        print("\n🎯 BEST SETUP")
+    if tradable:
+
+        best = tradable[0]
+
+        print("\n🎯 BEST TRADABLE SETUP")
         print(f"Pair        : {best['pair']}")
         print(f"Setup       : {best['setup']}")
         print(f"State       : {best['market_state']}")
