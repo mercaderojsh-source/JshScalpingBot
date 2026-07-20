@@ -1,6 +1,6 @@
-# ==========================
+# =========================
 # JshScalpingBot Configuration
-# ==========================
+# =========================
 
 # Trading Pairs
 PAIRS = [
@@ -21,5 +21,5 @@ MIN_SCORE = 75
 START_BALANCE = 15.00
 
 # Risk Management
-TAKE_PROFIT = 0.01      # +1%
-STOP_LOSS = 0.005       # -0.5%
+RISK_PER_TRADE = 1.0      # % of account balance to risk
+TAKE_PROFIT_RR = 2.0      # Risk : Reward (1:2)
