@@ -6,6 +6,7 @@ from exchange.bitget import (
     set_leverage,
     place_market_order,
     place_stop_loss,
+    place_take_profit,
 )
 from config import LEVERAGE
 
@@ -57,6 +58,22 @@ def main():
         )
 
         print(response)
+
+        print("\n===== ATTACH TAKE PROFIT =====")
+
+        # Test take profit (above current BTC price for a long)
+        take_profit_price = 70000
+
+        response = place_take_profit(
+            symbol="BTCUSDT",
+            hold_side="long",
+            take_profit=take_profit_price
+        )
+
+        print(response)
+
+        print("\n===== FINAL POSITION =====")
+        live.get_open_positions()
 
     except Exception as e:
         print("EXCEPTION:", e)
