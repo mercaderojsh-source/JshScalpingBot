@@ -1,4 +1,8 @@
-from config import START_BALANCE
+from config import (
+    START_BALANCE,
+    RISK_PER_TRADE,
+)
+
 from trading.risk_manager import calculate_levels
 from trading.position_sizer import calculate_position_size
 
@@ -25,7 +29,7 @@ class PaperTrader:
 
         position_size = calculate_position_size(
             balance=self.balance,
-            risk_percent=1.0,
+            risk_percent=RISK_PER_TRADE,
             entry_price=price,
             stop_loss=levels["stop_loss"]
         )
