@@ -1,4 +1,7 @@
-def calculate_levels(entry_price, atr, direction, rr_ratio=2.0):
+from config import TAKE_PROFIT_RR
+
+
+def calculate_levels(entry_price, atr, direction, rr_ratio=TAKE_PROFIT_RR):
     """
     ATR-based Stop Loss & Take Profit.
 
