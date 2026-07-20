@@ -1,17 +1,22 @@
 from exchange.bitget import get_candles
+
 from indicators.ema import calculate_ema
 
 
 def higher_timeframe_trend(pair):
-    """
-    Determines the higher timeframe trend (5-minute)
-    using EMA 9, EMA 21 and EMA 50.
-    """
 
-    response = get_candles(pair, granularity="5m")
+    response = get_candles(
+        pair,
+        granularity="5m"
+    )
 
     if response.get("code") != "00000":
-        return "NEUTRAL"
+        return {
+            "trend": "NEUTRAL",
+            "ema9": 0,
+            "ema21": 0,
+            "ema50": 0
+        }
 
     candles = response["data"]
 
@@ -22,9 +27,17 @@ def higher_timeframe_trend(pair):
     ema50 = calculate_ema(closes, 50)
 
     if ema9 > ema21 > ema50:
-        return "BUY"
+        trend = "BUY"
 
-    if ema9 < ema21 < ema50:
-        return "SELL"
+    elif ema9 < ema21 < ema50:
+        trend = "SELL"
 
-    return "NEUTRAL"
+    else:
+        trend = "NEUTRAL"
+
+    return {
+        "trend": trend,
+        "ema9": ema9,
+        "ema21": ema21,
+        "ema50": ema50
+    }
