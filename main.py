@@ -291,49 +291,49 @@ while True:
         trade_found = False
 
         for best in ranked:
-            
-            # Skip pairs in cooldown
-            if trader.in_cooldown(best["pair"]):
 
-                print(
-                f"⏳ {best['pair']} still in cooldown..."
-            )
+    # Skip pairs in cooldown
+    if trader.in_cooldown(best["pair"]):
 
-            continue
+        print(
+            f"⏳ {best['pair']} still in cooldown..."
+        )
 
-            # Skip WATCHLIST setups
-            if "WATCHLIST" in best["setup"]:
-                continue
+        continue
 
-            print("\n🎯 CHECKING SETUP")
-            print(f"Pair        : {best['pair']}")
-            print(f"State       : {best['market_state']}")
-            print(f"HTF         : {best['higher_timeframe']}")
-            print(f"Setup       : {best['setup']}")
-            print(f"Score       : {best['score']:.1f}")
-            print(f"RSI         : {best['rsi']:.2f}")
-            print(f"ATR %       : {best['atr_percent']:.2f}%")
+    # Skip WATCHLIST setups
+    if "WATCHLIST" in best["setup"]:
+        continue
 
-            if not confirm_entry(
-                setup=best["setup"],
-                market_state=best["market_state"],
-                score=best["score"],
-                rsi=best["rsi"],
-                atr_percent=best["atr_percent"]
-            ):
-                continue
+    print("\n🎯 CHECKING SETUP")
+    print(f"Pair        : {best['pair']}")
+    print(f"State       : {best['market_state']}")
+    print(f"HTF         : {best['higher_timeframe']}")
+    print(f"Setup       : {best['setup']}")
+    print(f"Score       : {best['score']:.1f}")
+    print(f"RSI         : {best['rsi']:.2f}")
+    print(f"ATR %       : {best['atr_percent']:.2f}%")
 
-            direction = "BUY"
+    if not confirm_entry(
+        setup=best["setup"],
+        market_state=best["market_state"],
+        score=best["score"],
+        rsi=best["rsi"],
+        atr_percent=best["atr_percent"]
+    ):
+        continue
 
-            if "SELL" in best["setup"]:
-                direction = "SELL"
+    direction = "BUY"
 
-            trade = trader.open_trade(
-                best["pair"],
-                direction,
-                best["price"],
-                best["atr"]
-            )
+    if "SELL" in best["setup"]:
+        direction = "SELL"
+
+    trade = trader.open_trade(
+        best["pair"],
+        direction,
+        best["price"],
+        best["atr"]
+    )
 
             print(
                 f"\n✅ OPENED {trade['direction']} "
