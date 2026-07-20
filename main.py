@@ -291,6 +291,15 @@ while True:
         trade_found = False
 
         for best in ranked:
+            
+            # Skip pairs in cooldown
+            if trader.in_cooldown(best["pair"]):
+
+            print(
+                f"⏳ {best['pair']} still in cooldown..."
+            )
+
+            continue
 
             # Skip WATCHLIST setups
             if "WATCHLIST" in best["setup"]:
