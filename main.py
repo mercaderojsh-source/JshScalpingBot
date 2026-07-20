@@ -407,3 +407,7 @@ while True:
     print(f"\n⏳ Waiting {SCAN_INTERVAL} seconds...\n")
 
     time.sleep(SCAN_INTERVAL)
+
+from exchange.bitget import get_futures_account
+
+print(get_futures_account())
