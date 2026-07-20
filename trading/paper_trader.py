@@ -96,10 +96,6 @@ class PaperTrader:
         if self.position is None:
             return None
 
-        # Already protected
-        if self.position["break_even"]:
-            return None
-
         entry = self.position["entry"]
         initial_stop = self.position["initial_stop"]
         direction = self.position["direction"]
@@ -117,8 +113,13 @@ class PaperTrader:
 
         r_multiple = profit / risk
 
-        # Move stop to break-even after +1R
-        if r_multiple >= 1:
+        # -----------------------------
+        # Stage 1: Move Stop to Break-even
+        # -----------------------------
+        if (
+            not self.position["break_even"]
+            and r_multiple >= 1
+        ):
 
             self.position["stop_loss"] = entry
             self.position["break_even"] = True
@@ -126,6 +127,17 @@ class PaperTrader:
             print(f"🛡 Break-even activated for {self.position['pair']}")
 
             return "BREAK_EVEN"
+
+        # -----------------------------
+        # Stage 2: Partial Take Profit
+        # -----------------------------
+        if (
+            self.position["break_even"]
+            and not self.position["partial_taken"]
+            and r_multiple >= 2
+        ):
+
+            return "PARTIAL_TP"
 
         return None
 
