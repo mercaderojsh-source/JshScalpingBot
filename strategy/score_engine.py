@@ -21,4 +21,11 @@ def final_score(confidence, volatility, market_state, setup):
     elif "BUY" in setup or "SELL" in setup:
         score += 8
 
-    return round(min(score, 100), 1)
+    # Penalize watchlist setups
+    if "WATCHLIST" in setup:
+        score -= 35
+
+    # Keep score between 0 and 100
+    score = max(0, min(score, 100))
+
+    return round(score, 1)
