@@ -288,9 +288,9 @@ while True:
     # -----------------------------
     if trader.position is None:
 
-    trade_found = False
+        trade_found = False
 
-    for best in ranked:
+        for best in ranked:
 
         # Skip pairs in cooldown
         if trader.in_cooldown(best["pair"]):
