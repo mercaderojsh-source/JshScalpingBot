@@ -73,9 +73,12 @@ class PaperTrader:
         stop_loss = self.position["stop_loss"]
         take_profit = self.position["take_profit"]
 
+        # Ignore original TP after partial take profit.
+        trailing_only = self.position["partial_taken"]
+
         if direction == "BUY":
 
-            if current_price >= take_profit:
+            if not trailing_only and current_price >= take_profit:
                 return "TP"
 
             if current_price <= stop_loss:
@@ -83,7 +86,7 @@ class PaperTrader:
 
         else:
 
-            if current_price <= take_profit:
+            if not trailing_only and current_price <= take_profit:
                 return "TP"
 
             if current_price >= stop_loss:
