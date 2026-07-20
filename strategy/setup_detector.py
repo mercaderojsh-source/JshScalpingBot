@@ -14,31 +14,41 @@ def detect_setup(
         👀 WATCHLIST
     """
 
+    # -----------------------------
     # Strong Buy
+    # -----------------------------
     if (
         ema9 > ema21 > ema50
         and 45 <= rsi <= 70
     ):
         return "🟢 STRONG BUY"
 
+    # -----------------------------
     # Buy
+    # -----------------------------
     if (
         ema9 > ema21
-        and rsi < 45
+        and ema21 >= ema50
+        and rsi < 70
     ):
         return "🟢 BUY"
 
+    # -----------------------------
     # Strong Sell
+    # -----------------------------
     if (
         ema9 < ema21 < ema50
         and 30 <= rsi <= 55
     ):
         return "🔴 STRONG SELL"
 
+    # -----------------------------
     # Sell
+    # -----------------------------
     if (
         ema9 < ema21
-        and rsi > 55
+        and ema21 <= ema50
+        and rsi > 30
     ):
         return "🔴 SELL"
 
