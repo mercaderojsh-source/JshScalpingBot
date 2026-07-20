@@ -37,14 +37,6 @@ print("=" * 60)
 
 send_message("🤖 JshScalpingBot Started")
 
-from exchange.bitget import get_futures_account
-
-print("========== BITGET API TEST ==========")
-print(get_futures_account())
-print("=====================================")
-
-exit()
-
 while True:
 
     print("\n" + "=" * 60)
