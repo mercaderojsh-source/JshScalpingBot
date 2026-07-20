@@ -102,6 +102,12 @@ while True:
             price
         )
 
+        print(
+        f"{pair} | EMA Gap %: "
+        f"{((abs(ema9-ema21)+abs(ema21-ema50))/ price)*100:.4f}% "
+        f"| Trend Score: {trend}"
+        )
+
         state = market_state(
             ema9,
             ema21,
