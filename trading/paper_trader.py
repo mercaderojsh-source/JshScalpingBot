@@ -1,3 +1,5 @@
+import time
+
 from config import (
     START_BALANCE,
     RISK_PER_TRADE,
@@ -15,6 +17,19 @@ class PaperTrader:
         self.trade_count = 0
         self.wins = 0
         self.losses = 0
+
+        # Pair cooldowns
+        self.cooldowns = {}
+
+    # ---------------------------------
+    # Cooldown Checker
+    # ---------------------------------
+    def in_cooldown(self, pair):
+
+        if pair not in self.cooldowns:
+            return False
+
+        return time.time() < self.cooldowns[pair]
 
     def open_trade(self, pair, direction, price, atr):
 
@@ -73,7 +88,7 @@ class PaperTrader:
         stop_loss = self.position["stop_loss"]
         take_profit = self.position["take_profit"]
 
-        # Ignore original TP after partial take profit.
+        # Ignore original TP after partial take profit
         trailing_only = self.position["partial_taken"]
 
         if direction == "BUY":
@@ -117,7 +132,7 @@ class PaperTrader:
         r_multiple = profit / risk
 
         # -----------------------------
-        # Stage 1: Move Stop to Break-even
+        # Stage 1: Break-even
         # -----------------------------
         if (
             not self.position["break_even"]
@@ -147,16 +162,17 @@ class PaperTrader:
             else:
                 partial_pnl = (entry - current_price) * partial_size
 
-            # Credit realized profit
             self.balance += partial_pnl
 
-            # Reduce remaining position
             self.position["remaining_size"] -= partial_size
             self.position["partial_taken"] = True
 
             print(f"💵 PARTIAL TAKE PROFIT {self.position['pair']}")
             print(f"Realized PnL : {round(partial_pnl, 2)}")
-            print(f"Remaining Size : {self.position['remaining_size']:.6f}")
+            print(
+                f"Remaining Size : "
+                f"{self.position['remaining_size']:.6f}"
+            )
             print(f"Balance : {round(self.balance, 2)}")
 
             return {
@@ -184,7 +200,8 @@ class PaperTrader:
 
                     print(
                         f"📈 Trailing Stop Updated: "
-                        f"{self.position['pair']} -> {new_stop:.4f}"
+                        f"{self.position['pair']} -> "
+                        f"{new_stop:.4f}"
                     )
 
                     return {
@@ -203,7 +220,8 @@ class PaperTrader:
 
                     print(
                         f"📉 Trailing Stop Updated: "
-                        f"{self.position['pair']} -> {new_stop:.4f}"
+                        f"{self.position['pair']} -> "
+                        f"{new_stop:.4f}"
                     )
 
                     return {
@@ -221,6 +239,7 @@ class PaperTrader:
 
         entry = self.position["entry"]
         direction = self.position["direction"]
+        pair = self.position["pair"]
 
         # Close only the remaining open size
         size = self.position["remaining_size"]
@@ -238,13 +257,20 @@ class PaperTrader:
         else:
             self.losses += 1
 
-        print(f"💰 CLOSE {self.position['pair']}")
+        print(f"💰 CLOSE {pair}")
         print(f"PnL : {round(pnl, 2)}")
         print(f"Balance : {round(self.balance, 2)}")
 
+        # -----------------------------
+        # Start 5-minute cooldown
+        # -----------------------------
+        self.cooldowns[pair] = time.time() + 300
+
+        print(f"⏳ {pair} cooldown started (5 minutes)")
+
         trade = {
-            "pair": self.position["pair"],
-            "direction": self.position["direction"],
+            "pair": pair,
+            "direction": direction,
             "entry": entry,
             "exit": current_price,
             "pnl": pnl,
@@ -269,10 +295,22 @@ class PaperTrader:
                 2
             )
 
+        active_cooldowns = {}
+
+        now = time.time()
+
+        for pair, expiry in self.cooldowns.items():
+
+            remaining = int(expiry - now)
+
+            if remaining > 0:
+                active_cooldowns[pair] = remaining
+
         return {
             "balance": round(self.balance, 2),
             "trades": self.trade_count,
             "wins": self.wins,
             "losses": self.losses,
-            "win_rate": win_rate
+            "win_rate": win_rate,
+            "cooldowns": active_cooldowns
         }
