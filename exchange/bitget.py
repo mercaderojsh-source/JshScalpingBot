@@ -188,3 +188,26 @@ def place_market_order(symbol, side, size):
         "/api/v2/mix/order/place-order",
         body
     )
+
+
+def set_leverage(symbol, leverage, hold_side="long"):
+    """
+    Sets leverage for a USDT perpetual futures symbol.
+
+    hold_side:
+        long
+        short
+    """
+
+    body = {
+        "symbol": symbol,
+        "productType": "USDT-FUTURES",
+        "marginCoin": "USDT",
+        "leverage": str(leverage),
+        "holdSide": hold_side
+    }
+
+    return _private_post(
+        "/api/v2/mix/account/set-leverage",
+        body
+    )
