@@ -50,6 +50,7 @@ class PaperTrader:
 
             # Position sizing
             "size": position_size,
+            "remaining_size": position_size,
 
             # Trade management flags
             "break_even": False,
@@ -135,7 +136,9 @@ class PaperTrader:
 
         entry = self.position["entry"]
         direction = self.position["direction"]
-        size = self.position["size"]
+
+        # Close only the remaining open size
+        size = self.position["remaining_size"]
 
         if direction == "BUY":
             pnl = (current_price - entry) * size
@@ -163,7 +166,8 @@ class PaperTrader:
             "balance": self.balance,
             "stop_loss": self.position["stop_loss"],
             "take_profit": self.position["take_profit"],
-            "size": self.position["size"]
+            "size": self.position["size"],
+            "remaining_size": self.position["remaining_size"]
         }
 
         self.position = None
