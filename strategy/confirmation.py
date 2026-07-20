@@ -38,7 +38,7 @@ def confirm_entry(
         return False
 
     # Require sufficient volatility
-    if atr_percent < 0.30:
+    if atr_percent < 0.05:
         print(f"❌ Rejected: ATR % = {atr_percent:.2f}%")
         return False
 
