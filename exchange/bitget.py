@@ -19,6 +19,47 @@ def get_ticker(symbol):
     return response.json()
 
 
+def get_contract_info(symbol):
+    """
+    Returns contract specifications for a futures symbol.
+    """
+    url = f"{BASE_URL}/api/v2/mix/market/contracts"
+
+    params = {
+        "symbol": symbol,
+        "productType": "USDT-FUTURES"
+    }
+
+    response = requests.get(url, params=params)
+
+    return response.json()
+
+
+def get_symbol_rules(symbol):
+    """
+    Returns normalized trading rules for a futures symbol.
+    """
+
+    response = get_contract_info(symbol)
+
+    if response.get("code") != "00000":
+        return None
+
+    if not response.get("data"):
+        return None
+
+    contract = response["data"][0]
+
+    return {
+        "symbol": contract["symbol"],
+        "min_size": float(contract["minTradeNum"]),
+        "size_step": float(contract["sizeMultiplier"]),
+        "price_decimals": int(contract["pricePlace"]),
+        "size_decimals": int(contract["volumePlace"]),
+        "max_leverage": int(contract["maxLever"]),
+    }
+
+
 def get_candles(symbol, granularity="1m", limit="100"):
     url = f"{BASE_URL}/api/v2/mix/market/candles"
 
@@ -129,7 +170,7 @@ def place_market_order(symbol, side, size):
     Places a USDT perpetual market order.
 
     side:
-        buy  = open long
+        buy = open long
         sell = open short
     """
 
