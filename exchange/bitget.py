@@ -206,6 +206,68 @@ def set_leverage(symbol, leverage, hold_side="long"):
         short
     """
 
+def place_position_tpsl(
+    symbol,
+    hold_side,
+    stop_loss=None,
+    take_profit=None
+):
+    """
+    Attach Stop Loss and/or Take Profit to an existing futures position.
+
+    hold_side:
+        long
+        short
+    """
+
+    body = {
+        "symbol": symbol,
+        "productType": "USDT-FUTURES",
+        "marginCoin": "USDT",
+        "holdSide": hold_side,
+    }
+
+    # Stop Loss
+    if stop_loss is not None:
+        body["stopLossTriggerPrice"] = str(stop_loss)
+        body["stopLossTriggerType"] = "mark_price"
+        body["stopLossExecutePrice"] = "0"
+
+    # Take Profit
+    if take_profit is not None:
+        body["stopSurplusTriggerPrice"] = str(take_profit)
+        body["stopSurplusTriggerType"] = "mark_price"
+        body["stopSurplusExecutePrice"] = "0"
+
+    return _private_post(
+        "/api/v2/mix/order/place-pos-tpsl",
+        body
+    )
+
+
+def place_stop_loss(symbol, hold_side, stop_loss):
+    """
+    Attach a Stop Loss to an existing position.
+    """
+
+    return place_position_tpsl(
+        symbol=symbol,
+        hold_side=hold_side,
+        stop_loss=stop_loss
+    )
+
+
+def place_take_profit(symbol, hold_side, take_profit):
+    """
+    Attach a Take Profit to an existing position.
+    """
+
+    return place_position_tpsl(
+        symbol=symbol,
+        hold_side=hold_side,
+        take_profit=take_profit
+    )
+
     body = {
         "symbol": symbol,
         "productType": "USDT-FUTURES",
