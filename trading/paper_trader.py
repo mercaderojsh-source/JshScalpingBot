@@ -137,7 +137,32 @@ class PaperTrader:
             and r_multiple >= 2
         ):
 
-            return "PARTIAL_TP"
+            partial_size = self.position["remaining_size"] / 2
+
+            if direction == "BUY":
+                partial_pnl = (current_price - entry) * partial_size
+            else:
+                partial_pnl = (entry - current_price) * partial_size
+
+            # Credit realized profit
+            self.balance += partial_pnl
+
+            # Reduce remaining position
+            self.position["remaining_size"] -= partial_size
+            self.position["partial_taken"] = True
+
+            print(f"💵 PARTIAL TAKE PROFIT {self.position['pair']}")
+            print(f"Realized PnL : {round(partial_pnl, 2)}")
+            print(f"Remaining Size : {self.position['remaining_size']:.6f}")
+            print(f"Balance : {round(self.balance, 2)}")
+
+            return {
+                "event": "PARTIAL_TP",
+                "pair": self.position["pair"],
+                "pnl": partial_pnl,
+                "remaining_size": self.position["remaining_size"],
+                "balance": self.balance
+            }
 
         return None
 
