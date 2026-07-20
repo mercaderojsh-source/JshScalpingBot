@@ -76,3 +76,16 @@ def get_futures_account():
             "productType": "USDT-FUTURES"
         }
     )
+
+
+def get_positions():
+    """
+    Returns all open USDT perpetual futures positions.
+    """
+    return _private_get(
+        "/api/v2/mix/position/all-position",
+        {
+            "productType": "USDT-FUTURES",
+            "marginCoin": "USDT"
+        }
+    )
