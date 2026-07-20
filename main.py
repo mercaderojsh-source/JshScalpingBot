@@ -16,6 +16,7 @@ from strategy.signal_engine import generate_signal
 from strategy.setup_detector import detect_setup
 from strategy.confidence import confidence_score
 from strategy.score_engine import final_score
+from strategy.confirmation import confirm_entry
 
 from scanner.volatility_ranker import volatility_score
 from scanner.market_state import market_state
@@ -106,6 +107,8 @@ while True:
             price
         )
 
+        atr_percent = (atr / price) * 100
+
         score = final_score(
             confidence,
             vol,
@@ -117,6 +120,8 @@ while True:
             "pair": pair,
             "price": price,
             "atr": atr,
+            "atr_percent": atr_percent,
+            "rsi": rsi,
             "signal": signal,
             "setup": setup,
             "confidence": confidence,
@@ -198,10 +203,12 @@ while True:
 
         best = ranked[0]
 
-        if (
-            best["score"] >= MIN_SCORE
-            and "WATCHLIST" not in best["setup"]
-            and best["market_state"] not in ["🌊 RANGING", "😴 QUIET"]
+        if confirm_entry(
+            setup=best["setup"],
+            market_state=best["market_state"],
+            score=best["score"],
+            rsi=best["rsi"],
+            atr_percent=best["atr_percent"]
         ):
 
             direction = "BUY"
