@@ -37,6 +37,13 @@ print("=" * 60)
 
 send_message("🤖 JshScalpingBot Started")
 
+from exchange.bitget import get_futures_account
+
+print("========== BITGET API TEST ==========")
+print(get_futures_account())
+print("=====================================")
+
+exit()
 
 while True:
 
@@ -407,7 +414,3 @@ while True:
     print(f"\n⏳ Waiting {SCAN_INTERVAL} seconds...\n")
 
     time.sleep(SCAN_INTERVAL)
-
-from exchange.bitget import get_futures_account
-
-print(get_futures_account())
