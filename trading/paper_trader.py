@@ -79,6 +79,20 @@ class PaperTrader:
 
         return self.position
 
+    def execute_trade(
+        self,
+        pair,
+        direction,
+        entry_price,
+        atr
+    ):
+        return self.open_trade(
+            pair=pair,
+            direction=direction,
+            price=entry_price,
+            atr=atr
+        )
+
     def check_exit(self, current_price):
 
         if self.position is None:
