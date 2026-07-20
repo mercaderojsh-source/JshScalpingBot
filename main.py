@@ -37,6 +37,13 @@ print("=" * 60)
 
 send_message("🤖 JshScalpingBot Started")
 
+from trading.live_trader import LiveTrader
+
+live = LiveTrader()
+live.get_account_info()
+
+exit()
+
 while True:
 
     print("\n" + "=" * 60)
