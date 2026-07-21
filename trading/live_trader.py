@@ -155,7 +155,7 @@ class LiveTrader:
         leverage_hold_side = "long" if direction == "BUY" else "short"
 
         # Hedge Mode uses long/short
-tpsl_hold_side = leverage_hold_side
+        tpsl_hold_side = leverage_hold_side
 
         print(f"\n📈 Opening {direction} {pair}")
         print(f"Entry : {entry_price}")
