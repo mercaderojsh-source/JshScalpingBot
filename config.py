@@ -16,7 +16,7 @@ BITGET_API_PASSPHRASE = os.getenv("BITGET_API_PASSPHRASE")
 # Trading Mode
 # =========================
 
-LIVE_TRADING = False
+LIVE_TRADING = True
 
 # =========================
 # Futures Settings
