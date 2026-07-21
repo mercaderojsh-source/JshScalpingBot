@@ -132,6 +132,7 @@ class LiveTrader:
         rules = get_symbol_rules(pair)
 
         if rules is None:
+            print("❌ Failed to fetch symbol rules.")
             return False
 
         size = calculate_position_size(
@@ -149,11 +150,13 @@ class LiveTrader:
         side = "buy" if direction == "BUY" else "sell"
         hold_side = "long" if direction == "BUY" else "short"
 
-        print(f"📈 Opening {direction} {pair}")
+        print(f"\n📈 Opening {direction} {pair}")
         print(f"Entry : {entry_price}")
         print(f"Size  : {size}")
         print(f"SL    : {stop_loss}")
         print(f"TP    : {take_profit}")
+
+        print("\n===== SET LEVERAGE =====")
 
         response = set_leverage(
             pair,
@@ -161,9 +164,13 @@ class LiveTrader:
             hold_side
         )
 
+        print(response)
+
         if response.get("code") != "00000":
-            print(response)
+            print("❌ Failed to set leverage.")
             return False
+
+        print("\n===== PLACE MARKET ORDER =====")
 
         response = place_market_order(
             symbol=pair,
@@ -171,12 +178,16 @@ class LiveTrader:
             size=size
         )
 
+        print(response)
+
         if response.get("code") != "00000":
-            print(response)
+            print("❌ Failed to place market order.")
             return False
 
-        # Wait for Bitget to create the position
+        print("⏳ Waiting 3 seconds for Bitget to register the position...")
         time.sleep(3)
+
+        print("\n===== ATTACH STOP LOSS =====")
 
         response = place_stop_loss(
             symbol=pair,
@@ -184,9 +195,15 @@ class LiveTrader:
             stop_loss=stop_loss
         )
 
+        print(response)
+
         if response.get("code") != "00000":
-            print(response)
+            print("❌ Failed to attach Stop Loss.")
             return False
+
+        print("✅ Stop Loss attached.")
+
+        print("\n===== ATTACH TAKE PROFIT =====")
 
         response = place_take_profit(
             symbol=pair,
@@ -194,10 +211,13 @@ class LiveTrader:
             take_profit=take_profit
         )
 
+        print(response)
+
         if response.get("code") != "00000":
-            print(response)
+            print("❌ Failed to attach Take Profit.")
             return False
 
+        print("✅ Take Profit attached.")
         print("✅ Live trade executed successfully.")
 
         return {
