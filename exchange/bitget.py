@@ -31,9 +31,6 @@ def get_ticker(symbol):
 
 
 def get_contract_info(symbol):
-    """
-    Returns contract specifications for a futures symbol.
-    """
 
     url = f"{BASE_URL}/api/v2/mix/market/contracts"
 
@@ -51,9 +48,6 @@ def get_contract_info(symbol):
 
 
 def get_symbol_rules(symbol):
-    """
-    Returns normalized trading rules.
-    """
 
     response = get_contract_info(symbol)
 
@@ -96,6 +90,7 @@ def get_candles(
 
     return response.json()
 
+
 # ==========================================================
 # Authentication
 # ==========================================================
@@ -124,8 +119,8 @@ def _sign(
         )
 
     signature = hmac.new(
-        API_SECRET.encode("utf-8"),
-        message.encode("utf-8"),
+        API_SECRET.encode(),
+        message.encode(),
         hashlib.sha256
     ).digest()
 
@@ -158,10 +153,8 @@ def _private_get(
         "locale": "en-US"
     }
 
-    url = BASE_URL + request_path
-
     response = requests.get(
-        url,
+        BASE_URL + request_path,
         headers=headers,
         params=params
     )
@@ -196,24 +189,33 @@ def _private_post(
         "locale": "en-US"
     }
 
-    url = BASE_URL + request_path
+    print("\n========== BITGET REQUEST ==========")
+    print("Endpoint :", request_path)
+    print("Body     :", body)
 
     response = requests.post(
-        url,
+        BASE_URL + request_path,
         headers=headers,
         data=body_json
     )
 
-    return response.json()
+    try:
+        data = response.json()
+    except Exception:
+        print(response.text)
+        raise
+
+    print("Response :", data)
+    print("====================================\n")
+
+    return data
+
 
 # ==========================================================
 # Private Endpoints
 # ==========================================================
 
 def get_futures_account():
-    """
-    Returns the USDT Futures account information.
-    """
 
     return _private_get(
         "/api/v2/mix/account/accounts",
@@ -224,9 +226,6 @@ def get_futures_account():
 
 
 def get_positions():
-    """
-    Returns all open USDT perpetual futures positions.
-    """
 
     return _private_get(
         "/api/v2/mix/position/all-position",
@@ -243,16 +242,6 @@ def place_market_order(
     size,
     trade_side="open"
 ):
-    """
-    Places a USDT perpetual futures market order.
-
-    side:
-        buy  -> open long
-        sell -> open short
-
-    trade_side:
-        open / close
-    """
 
     body = {
         "symbol": symbol,
@@ -276,13 +265,6 @@ def set_leverage(
     leverage,
     hold_side="long"
 ):
-    """
-    Sets leverage for a USDT perpetual futures symbol.
-
-    hold_side:
-        long
-        short
-    """
 
     body = {
         "symbol": symbol,
@@ -322,17 +304,26 @@ def place_position_tpsl(
         "holdSide": hold_side,
     }
 
-    # Stop Loss
+    # ---------------- STOP LOSS ----------------
+
     if stop_loss is not None:
         body["stopLossTriggerPrice"] = str(stop_loss)
         body["stopLossTriggerType"] = "mark_price"
-        body["stopLossExecutePrice"] = str(stop_loss)
 
-    # Take Profit
+        # Execute at MARKET when triggered
+        body["stopLossExecutePrice"] = "0"
+
+    # ---------------- TAKE PROFIT ----------------
+
     if take_profit is not None:
         body["stopSurplusTriggerPrice"] = str(take_profit)
         body["stopSurplusTriggerType"] = "mark_price"
-        body["stopSurplusExecutePrice"] = str(take_profit)
+
+        # Execute at MARKET when triggered
+        body["stopSurplusExecutePrice"] = "0"
+
+    print("\n========== POSITION TP/SL ==========")
+    print(body)
 
     return _private_post(
         "/api/v2/mix/order/place-pos-tpsl",
@@ -346,8 +337,10 @@ def place_stop_loss(
     stop_loss
 ):
     """
-    Attach a Stop Loss to an existing position.
+    Attach Stop Loss to an existing position.
     """
+
+    print("\n===== PLACE STOP LOSS =====")
 
     return place_position_tpsl(
         symbol=symbol,
@@ -362,8 +355,10 @@ def place_take_profit(
     take_profit
 ):
     """
-    Attach a Take Profit to an existing position.
+    Attach Take Profit to an existing position.
     """
+
+    print("\n===== PLACE TAKE PROFIT =====")
 
     return place_position_tpsl(
         symbol=symbol,
