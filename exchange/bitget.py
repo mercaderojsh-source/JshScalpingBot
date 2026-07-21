@@ -291,11 +291,20 @@ def place_position_tpsl(
 ):
     """
     Attach Stop Loss and/or Take Profit to an existing futures position.
-
-    hold_side:
-        long
-        short
+    Automatically rounds prices to the symbol's allowed precision.
     """
+
+    # Get symbol precision
+    rules = get_symbol_rules(symbol)
+
+    if rules is None:
+        print("❌ Failed to fetch symbol rules.")
+        return {
+            "code": "LOCAL_ERROR",
+            "msg": "Failed to fetch symbol rules."
+        }
+
+    price_decimals = rules["price_decimals"]
 
     body = {
         "symbol": symbol,
@@ -307,20 +316,22 @@ def place_position_tpsl(
     # ---------------- STOP LOSS ----------------
 
     if stop_loss is not None:
-        body["stopLossTriggerPrice"] = str(stop_loss)
-        body["stopLossTriggerType"] = "mark_price"
 
-        # Execute at MARKET when triggered
-        body["stopLossExecutePrice"] = str(stop_loss)
+        stop_loss = round(float(stop_loss), price_decimals)
+
+        body["stopLossTriggerPrice"] = f"{stop_loss:.{price_decimals}f}"
+        body["stopLossTriggerType"] = "mark_price"
+        body["stopLossExecutePrice"] = f"{stop_loss:.{price_decimals}f}"
 
     # ---------------- TAKE PROFIT ----------------
 
     if take_profit is not None:
-        body["stopSurplusTriggerPrice"] = str(take_profit)
-        body["stopSurplusTriggerType"] = "mark_price"
 
-        # Execute at MARKET when triggered
-        body["stopSurplusExecutePrice"] = str(take_profit)
+        take_profit = round(float(take_profit), price_decimals)
+
+        body["stopSurplusTriggerPrice"] = f"{take_profit:.{price_decimals}f}"
+        body["stopSurplusTriggerType"] = "mark_price"
+        body["stopSurplusExecutePrice"] = f"{take_profit:.{price_decimals}f}"
 
     print("\n========== POSITION TP/SL ==========")
     print(body)
