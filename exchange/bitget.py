@@ -311,7 +311,7 @@ def place_position_tpsl(
         body["stopLossTriggerType"] = "mark_price"
 
         # Execute at MARKET when triggered
-        body["stopLossExecutePrice"] = "0"
+        body["stopLossExecutePrice"] = str(stop_loss)
 
     # ---------------- TAKE PROFIT ----------------
 
@@ -320,7 +320,7 @@ def place_position_tpsl(
         body["stopSurplusTriggerType"] = "mark_price"
 
         # Execute at MARKET when triggered
-        body["stopSurplusExecutePrice"] = "0"
+        body["stopSurplusExecutePrice"] = str(take_profit)
 
     print("\n========== POSITION TP/SL ==========")
     print(body)
