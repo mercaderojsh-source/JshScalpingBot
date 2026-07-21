@@ -15,9 +15,18 @@ API_SECRET = os.getenv("BITGET_API_SECRET")
 API_PASSPHRASE = os.getenv("BITGET_API_PASSPHRASE")
 
 
+# ==========================================================
+# Public Endpoints
+# ==========================================================
+
 def get_ticker(symbol):
-    url = f"{BASE_URL}/api/v2/mix/market/ticker?symbol={symbol}&productType=USDT-FUTURES"
+    url = (
+        f"{BASE_URL}/api/v2/mix/market/ticker"
+        f"?symbol={symbol}&productType=USDT-FUTURES"
+    )
+
     response = requests.get(url)
+
     return response.json()
 
 
@@ -25,6 +34,7 @@ def get_contract_info(symbol):
     """
     Returns contract specifications for a futures symbol.
     """
+
     url = f"{BASE_URL}/api/v2/mix/market/contracts"
 
     params = {
@@ -32,14 +42,17 @@ def get_contract_info(symbol):
         "productType": "USDT-FUTURES"
     }
 
-    response = requests.get(url, params=params)
+    response = requests.get(
+        url,
+        params=params
+    )
 
     return response.json()
 
 
 def get_symbol_rules(symbol):
     """
-    Returns normalized trading rules for a futures symbol.
+    Returns normalized trading rules.
     """
 
     response = get_contract_info(symbol)
@@ -62,7 +75,11 @@ def get_symbol_rules(symbol):
     }
 
 
-def get_candles(symbol, granularity="1m", limit="100"):
+def get_candles(
+    symbol,
+    granularity="1m",
+    limit="100"
+):
     url = f"{BASE_URL}/api/v2/mix/market/candles"
 
     params = {
@@ -72,15 +89,39 @@ def get_candles(symbol, granularity="1m", limit="100"):
         "productType": "USDT-FUTURES"
     }
 
-    response = requests.get(url, params=params)
+    response = requests.get(
+        url,
+        params=params
+    )
+
     return response.json()
 
+# ==========================================================
+# Authentication
+# ==========================================================
 
-def _sign(timestamp, method, request_path, query_string="", body=""):
+def _sign(
+    timestamp,
+    method,
+    request_path,
+    query_string="",
+    body=""
+):
     if query_string:
-        message = f"{timestamp}{method.upper()}{request_path}?{query_string}{body}"
+        message = (
+            f"{timestamp}"
+            f"{method.upper()}"
+            f"{request_path}"
+            f"?{query_string}"
+            f"{body}"
+        )
     else:
-        message = f"{timestamp}{method.upper()}{request_path}{body}"
+        message = (
+            f"{timestamp}"
+            f"{method.upper()}"
+            f"{request_path}"
+            f"{body}"
+        )
 
     signature = hmac.new(
         API_SECRET.encode("utf-8"),
@@ -91,16 +132,27 @@ def _sign(timestamp, method, request_path, query_string="", body=""):
     return base64.b64encode(signature).decode()
 
 
-def _private_get(request_path, params=None):
+def _private_get(
+    request_path,
+    params=None
+):
     params = params or {}
 
-    query_string = "&".join(f"{k}={v}" for k, v in params.items())
+    query_string = "&".join(
+        f"{k}={v}"
+        for k, v in params.items()
+    )
 
     timestamp = str(int(time.time() * 1000))
 
     headers = {
         "ACCESS-KEY": API_KEY,
-        "ACCESS-SIGN": _sign(timestamp, "GET", request_path, query_string),
+        "ACCESS-SIGN": _sign(
+            timestamp,
+            "GET",
+            request_path,
+            query_string
+        ),
         "ACCESS-TIMESTAMP": timestamp,
         "ACCESS-PASSPHRASE": API_PASSPHRASE,
         "locale": "en-US"
@@ -108,15 +160,25 @@ def _private_get(request_path, params=None):
 
     url = BASE_URL + request_path
 
-    response = requests.get(url, headers=headers, params=params)
+    response = requests.get(
+        url,
+        headers=headers,
+        params=params
+    )
 
     return response.json()
 
 
-def _private_post(request_path, body=None):
+def _private_post(
+    request_path,
+    body=None
+):
     body = body or {}
 
-    body_json = json.dumps(body, separators=(",", ":"))
+    body_json = json.dumps(
+        body,
+        separators=(",", ":")
+    )
 
     timestamp = str(int(time.time() * 1000))
 
@@ -144,8 +206,15 @@ def _private_post(request_path, body=None):
 
     return response.json()
 
+# ==========================================================
+# Private Endpoints
+# ==========================================================
 
 def get_futures_account():
+    """
+    Returns the USDT Futures account information.
+    """
+
     return _private_get(
         "/api/v2/mix/account/accounts",
         {
@@ -158,6 +227,7 @@ def get_positions():
     """
     Returns all open USDT perpetual futures positions.
     """
+
     return _private_get(
         "/api/v2/mix/position/all-position",
         {
@@ -167,17 +237,21 @@ def get_positions():
     )
 
 
-def place_market_order(symbol, side, size, trade_side="open"):
+def place_market_order(
+    symbol,
+    side,
+    size,
+    trade_side="open"
+):
     """
-    Places a USDT perpetual market order.
+    Places a USDT perpetual futures market order.
 
     side:
-        buy = long
-        sell = short
+        buy  -> open long
+        sell -> open short
 
     trade_side:
-        open = open a position
-        close = close a position
+        open / close
     """
 
     body = {
@@ -197,7 +271,11 @@ def place_market_order(symbol, side, size, trade_side="open"):
     )
 
 
-def set_leverage(symbol, leverage, hold_side="long"):
+def set_leverage(
+    symbol,
+    leverage,
+    hold_side="long"
+):
     """
     Sets leverage for a USDT perpetual futures symbol.
 
@@ -205,6 +283,23 @@ def set_leverage(symbol, leverage, hold_side="long"):
         long
         short
     """
+
+    body = {
+        "symbol": symbol,
+        "productType": "USDT-FUTURES",
+        "marginCoin": "USDT",
+        "leverage": str(leverage),
+        "holdSide": hold_side
+    }
+
+    return _private_post(
+        "/api/v2/mix/account/set-leverage",
+        body
+    )
+
+# ==========================================================
+# Position TP / SL
+# ==========================================================
 
 def place_position_tpsl(
     symbol,
@@ -245,7 +340,11 @@ def place_position_tpsl(
     )
 
 
-def place_stop_loss(symbol, hold_side, stop_loss):
+def place_stop_loss(
+    symbol,
+    hold_side,
+    stop_loss
+):
     """
     Attach a Stop Loss to an existing position.
     """
@@ -257,7 +356,11 @@ def place_stop_loss(symbol, hold_side, stop_loss):
     )
 
 
-def place_take_profit(symbol, hold_side, take_profit):
+def place_take_profit(
+    symbol,
+    hold_side,
+    take_profit
+):
     """
     Attach a Take Profit to an existing position.
     """
@@ -266,17 +369,4 @@ def place_take_profit(symbol, hold_side, take_profit):
         symbol=symbol,
         hold_side=hold_side,
         take_profit=take_profit
-    )
-
-    body = {
-        "symbol": symbol,
-        "productType": "USDT-FUTURES",
-        "marginCoin": "USDT",
-        "leverage": str(leverage),
-        "holdSide": hold_side
-    }
-
-    return _private_post(
-        "/api/v2/mix/account/set-leverage",
-        body
     )
