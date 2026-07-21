@@ -97,147 +97,159 @@ class LiveTrader:
         return open_positions
 
     def execute_trade(
-    self,
-    pair,
-    direction,
-    entry_price,
-    atr
-):
-    """
-    Executes a complete live trade using the same
-    interface as PaperTrader.
-    """
-
-    print("\n========== EXECUTE LIVE TRADE ==========")
-
-    # Prevent duplicate trades
-    if self.get_open_positions():
-        print("⚠️ Existing live position detected.")
-        return False
-
-    # Calculate SL / TP
-    levels = calculate_levels(
-        entry_price=entry_price,
-        atr=atr,
-        direction=direction
-    )
-
-    stop_loss = levels["stop_loss"]
-    take_profit = levels["take_profit"]
-
-    balance = self.get_balance()
-
-    if balance is None:
-        return False
-
-    rules = get_symbol_rules(pair)
-
-    if rules is None:
-        print("❌ Failed to fetch symbol rules.")
-        return False
-
-    size = calculate_position_size(
-        balance=balance,
-        risk_percent=RISK_PER_TRADE,
-        entry_price=entry_price,
-        stop_loss=stop_loss,
-        symbol_rules=rules
-    )
-
-    if size <= 0:
-        print("❌ Invalid position size.")
-        return False
-
-    # Market order side
-    side = "buy" if direction == "BUY" else "sell"
-
-    # Required by set-leverage endpoint
-    leverage_hold_side = "long" if direction == "BUY" else "short"
-
-    # Test value for TP/SL endpoint (One-way mode)
-    tpsl_hold_side = side
-
-    print(f"\n📈 Opening {direction} {pair}")
-    print(f"Entry : {entry_price}")
-    print(f"Size  : {size}")
-    print(f"SL    : {stop_loss}")
-    print(f"TP    : {take_profit}")
-
-    print("\n===== SET LEVERAGE =====")
-
-    response = set_leverage(
+        self,
         pair,
-        LEVERAGE,
-        leverage_hold_side
-    )
+        direction,
+        entry_price,
+        atr
+    ):
+        """
+        Executes a complete live trade using the same
+        interface as PaperTrader.
+        """
 
-    print(response)
+        print("\n========== EXECUTE LIVE TRADE ==========")
 
-    if response.get("code") != "00000":
-        print("❌ Failed to set leverage.")
-        return False
+        # Prevent duplicate trades
+        if self.get_open_positions():
+            print("⚠️ Existing live position detected.")
+            return False
 
-    print("\n===== PLACE MARKET ORDER =====")
+        # Calculate SL / TP
+        levels = calculate_levels(
+            entry_price=entry_price,
+            atr=atr,
+            direction=direction
+        )
 
-    response = place_market_order(
-        symbol=pair,
-        side=side,
-        size=size
-    )
+        stop_loss = levels["stop_loss"]
+        take_profit = levels["take_profit"]
 
-    print(response)
+        balance = self.get_balance()
 
-    if response.get("code") != "00000":
-        print("❌ Failed to place market order.")
-        return False
+        if balance is None:
+            return False
 
-    print("⏳ Waiting 3 seconds for Bitget to register the position...")
-    time.sleep(3)
+        rules = get_symbol_rules(pair)
 
-    # ---------------- STOP LOSS ----------------
+        if rules is None:
+            print("❌ Failed to fetch symbol rules.")
+            return False
 
-    print("\n===== ATTACH STOP LOSS =====")
+        size = calculate_position_size(
+            balance=balance,
+            risk_percent=RISK_PER_TRADE,
+            entry_price=entry_price,
+            stop_loss=stop_loss,
+            symbol_rules=rules
+        )
 
-    response = place_stop_loss(
-        symbol=pair,
-        hold_side=tpsl_hold_side,
-        stop_loss=stop_loss
-    )
+        if size <= 0:
+            print("❌ Invalid position size.")
+            return False
 
-    print("Stop Loss Response:")
-    print(response)
+        # Market order side
+        side = "buy" if direction == "BUY" else "sell"
 
-    if response.get("code") == "00000":
-        print("✅ Stop Loss attached.")
-    else:
-        print("❌ Stop Loss attachment failed.")
+        # Required by Bitget leverage endpoint
+        leverage_hold_side = "long" if direction == "BUY" else "short"
 
-    # ---------------- TAKE PROFIT ----------------
+        # Testing for TP/SL endpoint
+        tpsl_hold_side = side
 
-    print("\n===== ATTACH TAKE PROFIT =====")
+        print(f"\n📈 Opening {direction} {pair}")
+        print(f"Entry : {entry_price}")
+        print(f"Size  : {size}")
+        print(f"SL    : {stop_loss}")
+        print(f"TP    : {take_profit}")
 
-    response = place_take_profit(
-        symbol=pair,
-        hold_side=tpsl_hold_side,
-        take_profit=take_profit
-    )
+        # --------------------------------------------------
+        # Set Leverage
+        # --------------------------------------------------
 
-    print("Take Profit Response:")
-    print(response)
+        print("\n===== SET LEVERAGE =====")
 
-    if response.get("code") == "00000":
-        print("✅ Take Profit attached.")
-    else:
-        print("❌ Take Profit attachment failed.")
+        response = set_leverage(
+            pair,
+            LEVERAGE,
+            leverage_hold_side
+        )
 
-    print("✅ Live trade execution completed.")
+        print(response)
 
-    return {
-        "pair": pair,
-        "direction": direction,
-        "entry": entry_price,
-        "atr": atr,
-        "stop_loss": stop_loss,
-        "take_profit": take_profit,
-        "size": size
-    }
+        if response.get("code") != "00000":
+            print("❌ Failed to set leverage.")
+            return False
+
+        # --------------------------------------------------
+        # Place Market Order
+        # --------------------------------------------------
+
+        print("\n===== PLACE MARKET ORDER =====")
+
+        response = place_market_order(
+            symbol=pair,
+            side=side,
+            size=size
+        )
+
+        print(response)
+
+        if response.get("code") != "00000":
+            print("❌ Failed to place market order.")
+            return False
+
+        print("⏳ Waiting 3 seconds for Bitget to register the position...")
+        time.sleep(3)
+
+        # --------------------------------------------------
+        # Attach Stop Loss
+        # --------------------------------------------------
+
+        print("\n===== ATTACH STOP LOSS =====")
+
+        response = place_stop_loss(
+            symbol=pair,
+            hold_side=tpsl_hold_side,
+            stop_loss=stop_loss
+        )
+
+        print("Stop Loss Response:")
+        print(response)
+
+        if response.get("code") == "00000":
+            print("✅ Stop Loss attached.")
+        else:
+            print("❌ Stop Loss attachment failed.")
+
+        # --------------------------------------------------
+        # Attach Take Profit
+        # --------------------------------------------------
+
+        print("\n===== ATTACH TAKE PROFIT =====")
+
+        response = place_take_profit(
+            symbol=pair,
+            hold_side=tpsl_hold_side,
+            take_profit=take_profit
+        )
+
+        print("Take Profit Response:")
+        print(response)
+
+        if response.get("code") == "00000":
+            print("✅ Take Profit attached.")
+        else:
+            print("❌ Take Profit attachment failed.")
+
+        print("✅ Live trade execution completed.")
+
+        return {
+            "pair": pair,
+            "direction": direction,
+            "entry": entry_price,
+            "atr": atr,
+            "stop_loss": stop_loss,
+            "take_profit": take_profit,
+            "size": size
+        }
