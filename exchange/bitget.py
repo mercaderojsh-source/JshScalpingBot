@@ -290,8 +290,8 @@ def place_position_tpsl(
     take_profit=None
 ):
     """
-    Attach Stop Loss and/or Take Profit to an existing futures position.
-    Uses the latest Bitget TP/SL endpoint.
+    Attach TP/SL to an existing Bitget futures position.
+    Uses the official Bitget position TP/SL endpoint.
     """
 
     rules = get_symbol_rules(symbol)
@@ -304,69 +304,34 @@ def place_position_tpsl(
 
     price_decimals = rules["price_decimals"]
 
-    endpoint = "/api/v2/mix/order/place-tpsl-order"
-
-    sl_response = None
-    tp_response = None
-
-    # ======================================================
-    # STOP LOSS
-    # ======================================================
+    body = {
+        "symbol": symbol,
+        "productType": "USDT-FUTURES",
+        "marginCoin": "USDT",
+        "holdSide": hold_side
+    }
 
     if stop_loss is not None:
-
         stop_loss = round(float(stop_loss), price_decimals)
 
-        body = {
-            "symbol": symbol,
-            "productType": "USDT-FUTURES",
-            "marginCoin": "USDT",
-            "planType": "pos_loss",
-            "holdSide": hold_side,
-            "triggerPrice": f"{stop_loss:.{price_decimals}f}",
-            "triggerType": "mark_price",
-            "executePrice": "0"
-        }
-
-        print("\n========== STOP LOSS ==========")
-        print(body)
-
-        sl_response = _private_post(
-            endpoint,
-            body
-        )
-
-    # ======================================================
-    # TAKE PROFIT
-    # ======================================================
+        body["stopLossTriggerPrice"] = f"{stop_loss:.{price_decimals}f}"
+        body["stopLossTriggerType"] = "mark_price"
+        body["stopLossExecutePrice"] = "0"
 
     if take_profit is not None:
-
         take_profit = round(float(take_profit), price_decimals)
 
-        body = {
-            "symbol": symbol,
-            "productType": "USDT-FUTURES",
-            "marginCoin": "USDT",
-            "planType": "pos_profit",
-            "holdSide": hold_side,
-            "triggerPrice": f"{take_profit:.{price_decimals}f}",
-            "triggerType": "mark_price",
-            "executePrice": "0"
-        }
+        body["stopSurplusTriggerPrice"] = f"{take_profit:.{price_decimals}f}"
+        body["stopSurplusTriggerType"] = "mark_price"
+        body["stopSurplusExecutePrice"] = "0"
 
-        print("\n========== TAKE PROFIT ==========")
-        print(body)
+    print("\n========== POSITION TP/SL ==========")
+    print(body)
 
-        tp_response = _private_post(
-            endpoint,
-            body
-        )
-
-    return {
-        "stop_loss": sl_response,
-        "take_profit": tp_response
-    }
+    return _private_post(
+        "/api/v2/mix/order/place-pos-tpsl",
+        body
+    )
 
 # ==========================================================
 # Compatibility Wrappers
