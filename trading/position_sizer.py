@@ -1,5 +1,7 @@
 import math
 
+from config import LEVERAGE
+
 
 def calculate_position_size(
     balance,
@@ -9,17 +11,8 @@ def calculate_position_size(
     symbol_rules=None
 ):
     """
-    Calculates a futures position size based on account risk.
-
-    Args:
-        balance (float): Available account balance.
-        risk_percent (float): Percent of balance to risk.
-        entry_price (float): Planned entry price.
-        stop_loss (float): Stop-loss price.
-        symbol_rules (dict, optional): Exchange trading rules.
-
-    Returns:
-        float: Position size.
+    Calculates a futures position size based on account risk
+    while ensuring it does not exceed available buying power.
     """
 
     risk_amount = balance * (risk_percent / 100)
@@ -29,17 +22,19 @@ def calculate_position_size(
     if stop_distance <= 0:
         return 0
 
-    raw_size = risk_amount / stop_distance
+    # Risk-based size
+    risk_size = risk_amount / stop_distance
 
-    # -----------------------------
-    # Paper Trading
-    # -----------------------------
+    # Maximum size allowed by balance & leverage
+    max_size = (balance * LEVERAGE) / entry_price
+
+    # Use whichever is smaller
+    raw_size = min(risk_size, max_size)
+
+    # Paper trading
     if symbol_rules is None:
         return round(raw_size, 6)
 
-    # -----------------------------
-    # Live Trading
-    # -----------------------------
     min_size = symbol_rules["min_size"]
     step = symbol_rules["size_step"]
     decimals = symbol_rules["size_decimals"]
@@ -47,7 +42,6 @@ def calculate_position_size(
     if raw_size < min_size:
         return 0
 
-    # Round DOWN to the nearest valid contract step
     size = math.floor(raw_size / step) * step
 
     return round(size, decimals)
