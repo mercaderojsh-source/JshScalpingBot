@@ -316,14 +316,14 @@ def place_position_tpsl(
 
         body["stopLossTriggerPrice"] = f"{stop_loss:.{price_decimals}f}"
         body["stopLossTriggerType"] = "mark_price"
-        body["stopLossExecutePrice"] = "0"
+        body["stopLossExecutePrice"] = f"{stop_loss:.{price_decimals}f}"
 
     if take_profit is not None:
         take_profit = round(float(take_profit), price_decimals)
 
         body["stopSurplusTriggerPrice"] = f"{take_profit:.{price_decimals}f}"
         body["stopSurplusTriggerType"] = "mark_price"
-        body["stopSurplusExecutePrice"] = "0"
+        body["stopSurplusExecutePrice"] = f"{take_profit:.{price_decimals}f}"
 
     print("\n========== POSITION TP/SL ==========")
     print(body)
