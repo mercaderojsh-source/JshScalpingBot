@@ -367,3 +367,36 @@ def place_position_tpsl(
         "stop_loss": sl_response,
         "take_profit": tp_response
     }
+
+# ==========================================================
+# Compatibility Wrappers
+# ==========================================================
+
+def place_stop_loss(
+    symbol,
+    hold_side,
+    stop_loss
+):
+    """
+    Wrapper kept for compatibility with live_trader.py
+    """
+    return place_position_tpsl(
+        symbol=symbol,
+        hold_side=hold_side,
+        stop_loss=stop_loss
+    )
+
+
+def place_take_profit(
+    symbol,
+    hold_side,
+    take_profit
+):
+    """
+    Wrapper kept for compatibility with live_trader.py
+    """
+    return place_position_tpsl(
+        symbol=symbol,
+        hold_side=hold_side,
+        take_profit=take_profit
+    )
