@@ -154,7 +154,7 @@ class LiveTrader:
         # Required by Bitget leverage endpoint
         leverage_hold_side = "long" if direction == "BUY" else "short"
 
-        # Hedge Mode uses long/short
+        # Reuse the Hedge Mode holdSide for TP/SL
         tpsl_hold_side = leverage_hold_side
 
         print(f"\n📈 Opening {direction} {pair}")
