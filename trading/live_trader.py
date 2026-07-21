@@ -29,6 +29,7 @@ class LiveTrader:
 
         if response.get("code") != "00000":
             print("❌ Failed to fetch futures account.")
+            print(response)
             return None
 
         account = response["data"][0]
@@ -114,7 +115,7 @@ class LiveTrader:
             print("⚠️ Existing live position detected.")
             return False
 
-        # Calculate stop loss / take profit
+        # Calculate SL / TP
         levels = calculate_levels(
             entry_price=entry_price,
             atr=atr,
@@ -187,6 +188,8 @@ class LiveTrader:
         print("⏳ Waiting 3 seconds for Bitget to register the position...")
         time.sleep(3)
 
+        # ---------------- STOP LOSS ----------------
+
         print("\n===== ATTACH STOP LOSS =====")
 
         response = place_stop_loss(
@@ -195,13 +198,15 @@ class LiveTrader:
             stop_loss=stop_loss
         )
 
+        print("Stop Loss Response:")
         print(response)
 
-        if response.get("code") != "00000":
-            print("❌ Failed to attach Stop Loss.")
-            return False
+        if response.get("code") == "00000":
+            print("✅ Stop Loss attached.")
+        else:
+            print("❌ Stop Loss attachment failed.")
 
-        print("✅ Stop Loss attached.")
+        # ---------------- TAKE PROFIT ----------------
 
         print("\n===== ATTACH TAKE PROFIT =====")
 
@@ -211,14 +216,15 @@ class LiveTrader:
             take_profit=take_profit
         )
 
+        print("Take Profit Response:")
         print(response)
 
-        if response.get("code") != "00000":
-            print("❌ Failed to attach Take Profit.")
-            return False
+        if response.get("code") == "00000":
+            print("✅ Take Profit attached.")
+        else:
+            print("❌ Take Profit attachment failed.")
 
-        print("✅ Take Profit attached.")
-        print("✅ Live trade executed successfully.")
+        print("✅ Live trade execution completed.")
 
         return {
             "pair": pair,
