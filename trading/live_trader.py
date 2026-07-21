@@ -149,7 +149,9 @@ class LiveTrader:
             return False
 
         side = "buy" if direction == "BUY" else "sell"
-        hold_side = "long" if direction == "BUY" else "short"
+
+        # Bitget One-way Position Mode
+        hold_side = side
 
         print(f"\n📈 Opening {direction} {pair}")
         print(f"Entry : {entry_price}")
