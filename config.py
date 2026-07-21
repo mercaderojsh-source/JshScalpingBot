@@ -64,3 +64,5 @@ TAKE_PROFIT_RR = 2.0         # 1 : 2 Risk/Reward
 # =========================
 
 START_BALANCE = 15.00
+
+# Railway reconnect test
