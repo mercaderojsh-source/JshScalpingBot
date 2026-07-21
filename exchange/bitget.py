@@ -291,14 +291,12 @@ def place_position_tpsl(
 ):
     """
     Attach Stop Loss and/or Take Profit to an existing futures position.
-    Automatically rounds prices to the symbol's allowed precision.
+    Uses the latest Bitget TP/SL endpoint.
     """
 
-    # Get symbol precision
     rules = get_symbol_rules(symbol)
 
     if rules is None:
-        print("❌ Failed to fetch symbol rules.")
         return {
             "code": "LOCAL_ERROR",
             "msg": "Failed to fetch symbol rules."
@@ -306,73 +304,66 @@ def place_position_tpsl(
 
     price_decimals = rules["price_decimals"]
 
-    body = {
-        "symbol": symbol,
-        "productType": "USDT-FUTURES",
-        "marginCoin": "USDT",
-        "holdSide": hold_side,
-    }
+    endpoint = "/api/v2/mix/order/place-tpsl-order"
 
-    # ---------------- STOP LOSS ----------------
+    sl_response = None
+    tp_response = None
+
+    # ======================================================
+    # STOP LOSS
+    # ======================================================
 
     if stop_loss is not None:
 
         stop_loss = round(float(stop_loss), price_decimals)
 
-        body["stopLossTriggerPrice"] = f"{stop_loss:.{price_decimals}f}"
-        body["stopLossTriggerType"] = "mark_price"
-        body["stopLossExecutePrice"] = f"{stop_loss:.{price_decimals}f}"
+        body = {
+            "symbol": symbol,
+            "productType": "USDT-FUTURES",
+            "marginCoin": "USDT",
+            "planType": "pos_loss",
+            "holdSide": hold_side,
+            "triggerPrice": f"{stop_loss:.{price_decimals}f}",
+            "triggerType": "mark_price",
+            "executePrice": "0"
+        }
 
-    # ---------------- TAKE PROFIT ----------------
+        print("\n========== STOP LOSS ==========")
+        print(body)
+
+        sl_response = _private_post(
+            endpoint,
+            body
+        )
+
+    # ======================================================
+    # TAKE PROFIT
+    # ======================================================
 
     if take_profit is not None:
 
         take_profit = round(float(take_profit), price_decimals)
 
-        body["stopSurplusTriggerPrice"] = f"{take_profit:.{price_decimals}f}"
-        body["stopSurplusTriggerType"] = "mark_price"
-        body["stopSurplusExecutePrice"] = f"{take_profit:.{price_decimals}f}"
+        body = {
+            "symbol": symbol,
+            "productType": "USDT-FUTURES",
+            "marginCoin": "USDT",
+            "planType": "pos_profit",
+            "holdSide": hold_side,
+            "triggerPrice": f"{take_profit:.{price_decimals}f}",
+            "triggerType": "mark_price",
+            "executePrice": "0"
+        }
 
-    print("\n========== POSITION TP/SL ==========")
-    print(body)
+        print("\n========== TAKE PROFIT ==========")
+        print(body)
 
-    return _private_post(
-        "/api/v2/mix/order/place-pos-tpsl",
-        body
-    )
+        tp_response = _private_post(
+            endpoint,
+            body
+        )
 
-
-def place_stop_loss(
-    symbol,
-    hold_side,
-    stop_loss
-):
-    """
-    Attach Stop Loss to an existing position.
-    """
-
-    print("\n===== PLACE STOP LOSS =====")
-
-    return place_position_tpsl(
-        symbol=symbol,
-        hold_side=hold_side,
-        stop_loss=stop_loss
-    )
-
-
-def place_take_profit(
-    symbol,
-    hold_side,
-    take_profit
-):
-    """
-    Attach Take Profit to an existing position.
-    """
-
-    print("\n===== PLACE TAKE PROFIT =====")
-
-    return place_position_tpsl(
-        symbol=symbol,
-        hold_side=hold_side,
-        take_profit=take_profit
-    )
+    return {
+        "stop_loss": sl_response,
+        "take_profit": tp_response
+    }
