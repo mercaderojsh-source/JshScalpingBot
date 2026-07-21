@@ -25,8 +25,8 @@ def calculate_position_size(
     # Risk-based size
     risk_size = risk_amount / stop_distance
 
-    # Maximum size allowed by balance & leverage
-    max_size = (balance * LEVERAGE) / entry_price
+    # Leave 10% buying power buffer for fees & margin
+    max_size = (balance * LEVERAGE * 0.90) / entry_price
 
     # Use whichever is smaller
     raw_size = min(risk_size, max_size)
@@ -42,6 +42,7 @@ def calculate_position_size(
     if raw_size < min_size:
         return 0
 
+    # Round DOWN to valid contract size
     size = math.floor(raw_size / step) * step
 
     return round(size, decimals)
