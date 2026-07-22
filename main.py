@@ -136,23 +136,14 @@ while True:
             price
         )
 
-        ema_gap = (
-            abs(ema9 - ema21)
-            + abs(ema21 - ema50)
-        ) / price * 100
-
-        atr_percent = (atr / price) * 100
-
         momentum = momentum_score(
-            ema_gap,
             trend,
             atr_percent
         )
 
         print(
             f"{pair} | "
-            f"EMA Gap={ema_gap:.4f}% | "
-            f"Trend={trend} | "
+            f"Trend={trend}/20 | "
             f"ATR={atr_percent:.2f}% | "
             f"Momentum={momentum}"
         )
