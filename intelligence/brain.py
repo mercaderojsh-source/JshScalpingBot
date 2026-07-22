@@ -25,7 +25,7 @@ def intelligence_score(candidate):
     # ----------------------------
     # Volatility (15%)
     # ----------------------------
-    score += min(candidate["volatility"], 15)
+    score += min(candidate["volatility_score"], 15)
 
     # ----------------------------
     # Market State (10%)
