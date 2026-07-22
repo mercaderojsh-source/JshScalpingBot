@@ -149,6 +149,14 @@ while True:
             atr_percent
         )
 
+        print(
+            f"{pair} | "
+            f"EMA Gap={ema_gap:.4f}% | "
+            f"Trend={trend} | "
+            f"ATR={atr_percent:.2f}% | "
+            f"Momentum={momentum}"
+        )
+
         quality = quality_score(
             confidence,
             setup,
