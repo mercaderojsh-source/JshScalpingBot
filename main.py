@@ -136,6 +136,8 @@ while True:
             price
         )
 
+        atr_percent = (atr / price) * 100
+
         momentum = momentum_score(
             trend,
             atr_percent
