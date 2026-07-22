@@ -6,6 +6,10 @@ from config import (
     LIVE_TRADING,
 )
 
+from intelligence.momentum import momentum_score
+from intelligence.quality import quality_score
+from intelligence.opportunity import opportunity_score
+
 from intelligence.brain import intelligence_score
 
 from exchange.bitget import get_candles
@@ -170,6 +174,9 @@ while True:
             "volatility_score": vol,
             "market_state": state,
             "higher_timeframe": htf["trend"],
+            "momentum": momentum,
+            "quality": quality,
+            "opportunity": score,
             "score": score
         })
 
