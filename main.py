@@ -136,6 +136,11 @@ while True:
             price
         )
 
+        ema_gap = (
+            abs(ema9 - ema21)
+            + abs(ema21 - ema50)
+        ) / price * 100
+
         atr_percent = (atr / price) * 100
 
         momentum = momentum_score(
