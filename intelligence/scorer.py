@@ -1,10 +1,10 @@
-# intelligence/scorer.py
-
 from dataclasses import dataclass
 
 
 @dataclass
 class ScoreBreakdown:
+    pair: str
+
     trend: float
     ema: float
     momentum: float
@@ -26,37 +26,51 @@ class ScoreBreakdown:
             2,
         )
 
+    def as_dict(self):
+        return {
+            "pair": self.pair,
+            "trend": self.trend,
+            "ema": self.ema,
+            "momentum": self.momentum,
+            "atr": self.atr,
+            "rsi": self.rsi,
+            "volume": self.volume,
+            "structure": self.structure,
+            "total": self.total,
+        }
+
 
 def calculate_score(
-    trend_score,
-    ema_score,
-    momentum_score,
-    atr_score,
-    rsi_score,
-    volume_score,
-    structure_score,
+    pair,
+    trend,
+    ema,
+    momentum,
+    atr,
+    rsi,
+    volume,
+    structure,
 ):
     """
-    Returns a ScoreBreakdown object.
+    All values must already be normalized.
 
-    All inputs are already normalized.
+    Max scores
 
-    Maximum:
-        Trend      25
-        EMA        20
-        Momentum   15
-        ATR        15
-        RSI        10
-        Volume     10
-        Structure   5
+    Trend      25
+    EMA         20
+    Momentum    15
+    ATR         15
+    RSI         10
+    Volume      10
+    Structure    5
     """
 
     return ScoreBreakdown(
-        trend=min(trend_score, 25),
-        ema=min(ema_score, 20),
-        momentum=min(momentum_score, 15),
-        atr=min(atr_score, 15),
-        rsi=min(rsi_score, 10),
-        volume=min(volume_score, 10),
-        structure=min(structure_score, 5),
+        pair=pair,
+        trend=min(trend, 25),
+        ema=min(ema, 20),
+        momentum=min(momentum, 15),
+        atr=min(atr, 15),
+        rsi=min(rsi, 10),
+        volume=min(volume, 10),
+        structure=min(structure, 5),
     )
