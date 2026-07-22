@@ -287,13 +287,15 @@ while True:
     for index, item in enumerate(ranked, start=1):
 
         print(f"{index}. {item['pair']}")
-        print(f"   State : {item['market_state']}")
-        print(f"   HTF   : {item['higher_timeframe']}")
-        print(f"   Setup : {item['setup']}")
-        print(f"   Conf  : {item['confidence']}%")
-        print(f"   Trend : {item['trend_strength']}")
-        print(f"   Vol   : {item['volatility_score']}")
-        print(f"   Score : {item['score']}")
+        print(f"   State      : {item['market_state']}")
+        print(f"   HTF        : {item['higher_timeframe']}")
+        print(f"   Setup      : {item['setup']}")
+        print(f"   Confidence : {item['confidence']}%")
+        print(f"   Trend      : {item['trend_strength']}")
+        print(f"   Momentum   : {item['momentum']}")
+        print(f"   Quality    : {item['quality']}")
+        print(f"   Volatility : {item['volatility_score']}")
+        print(f"   Brain      : {item['brain_score']:.1f}")
         print()
 
     # -----------------------------
@@ -328,7 +330,9 @@ while True:
             print(f"State       : {best['market_state']}")
             print(f"HTF         : {best['higher_timeframe']}")
             print(f"Setup       : {best['setup']}")
-            print(f"Score       : {best['score']:.1f}")
+            print(f"Momentum    : {best['momentum']}")
+            print(f"Quality     : {best['quality']}")
+            print(f"Brain Score : {best['brain_score']:.1f}")
             print(f"RSI         : {best['rsi']:.2f}")
             print(f"ATR %       : {best['atr_percent']:.2f}%")
 
