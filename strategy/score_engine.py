@@ -6,34 +6,47 @@ def final_score(
     setup
 ):
     """
-    Returns a score out of 100.
-    Higher is better.
+    Intelligent weighted score (0-100)
     """
 
-    score = confidence
+    score = confidence * 0.45
 
-    # Reward volatility
-    score += min(volatility, 15)
+    # -------------------------
+    # Volatility (0-15)
+    # -------------------------
 
-    # Reward trend strength
-    score += trend_strength
+    score += min(volatility, 15) * 0.8
 
-    # Reward market state
+    # -------------------------
+    # Trend Strength (0-20)
+    # -------------------------
+
+    score += min(trend_strength, 20)
+
+    # -------------------------
+    # Market State
+    # -------------------------
+
     if "EXPLOSIVE" in market_state:
-        score += 20
+        score += 15
+
     elif "TRENDING" in market_state:
         score += 10
 
-    # Reward setup quality
+    elif "RANGING" in market_state:
+        score -= 8
+
+    # -------------------------
+    # Setup Quality
+    # -------------------------
+
     if "STRONG" in setup:
         score += 15
+
     elif "BUY" in setup or "SELL" in setup:
         score += 8
 
-    # Penalize watchlist setups
     if "WATCHLIST" in setup:
-        score -= 35
+        score -= 30
 
-    score = max(0, min(score, 100))
-
-    return round(score, 1)
+    return round(max(0, min(score, 100)), 1)
