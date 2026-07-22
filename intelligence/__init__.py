@@ -1,4 +1,1 @@
-
-
-
-. 
+from .brain import intelligence_score
