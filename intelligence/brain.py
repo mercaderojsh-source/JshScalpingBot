@@ -1,44 +1,63 @@
-def intelligence_score(candidate):
+def intelligence_score(data):
     """
-    Calculates a weighted intelligence score.
+    Brain V2
 
-    Returns 0-100.
+    Weighted score out of 100.
     """
 
     score = 0
 
-    # ----------------------------
-    # Confidence (40%)
-    # ----------------------------
-    score += candidate["confidence"] * 0.40
+    # -----------------------
+    # Trend Alignment (30)
+    # -----------------------
 
-    # ----------------------------
-    # Existing Score (20%)
-    # ----------------------------
-    score += candidate["score"] * 0.20
+    if data["higher_timeframe"] == "BUY":
 
-    # ----------------------------
-    # Trend Strength (15%)
-    # ----------------------------
-    score += candidate["trend_strength"] * 0.15
+        if "BUY" in data["setup"]:
+            score += 30
 
-    # ----------------------------
-    # Volatility (15%)
-    # ----------------------------
-    score += min(candidate["volatility_score"], 15)
+    elif data["higher_timeframe"] == "SELL":
 
-    # ----------------------------
-    # Market State (10%)
-    # ----------------------------
-    state = candidate["market_state"]
+        if "SELL" in data["setup"]:
+            score += 30
+
+    # -----------------------
+    # Momentum (25)
+    # -----------------------
+
+    momentum = data["momentum"]
+
+    score += momentum * 0.25
+
+    # -----------------------
+    # Quality (20)
+    # -----------------------
+
+    quality = data["quality"]
+
+    score += quality * 0.20
+
+    # -----------------------
+    # Market Condition (15)
+    # -----------------------
+
+    state = data["market_state"]
 
     if "EXPLOSIVE" in state:
-        score += 10
+        score += 15
 
     elif "TRENDING" in state:
-        score += 7
+        score += 10
 
-    elif "SIDEWAYS" in state:
-        score -= 10
+    elif "QUIET" in state:
+        score += 3
 
-    return round(score, 2)
+    # -----------------------
+    # Volatility (10)
+    # -----------------------
+
+    vol = data["volatility_score"]
+
+    score += min(vol, 10)
+
+    return round(min(score, 100), 1)
