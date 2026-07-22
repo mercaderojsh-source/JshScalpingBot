@@ -1,33 +1,50 @@
-def momentum_score(
-    ema_gap,
-    trend_strength,
-    atr_percent
-):
+def momentum_score(ema_gap, trend_strength, atr_percent):
     """
-    Score momentum from 0-100
+    Momentum Score (0-100)
+
+    Components:
+      EMA Gap        : 40%
+      Trend Strength : 40%
+      ATR %          : 20%
     """
 
-    score = 0
+    # -----------------------
+    # EMA Gap (0-40)
+    # -----------------------
+    if ema_gap >= 0.50:
+        ema_points = 40
+    elif ema_gap >= 0.35:
+        ema_points = 32
+    elif ema_gap >= 0.20:
+        ema_points = 24
+    elif ema_gap >= 0.10:
+        ema_points = 16
+    elif ema_gap >= 0.05:
+        ema_points = 8
+    else:
+        ema_points = 0
 
-    # EMA expansion
-    if ema_gap > 0.30:
-        score += 40
-    elif ema_gap > 0.20:
-        score += 30
-    elif ema_gap > 0.10:
-        score += 20
-    elif ema_gap > 0.05:
-        score += 10
+    # -----------------------
+    # Trend Strength (0-40)
+    # -----------------------
+    trend_points = max(0, min(trend_strength, 10)) * 4
 
-    # Trend strength
-    score += min(trend_strength * 3, 30)
+    # -----------------------
+    # ATR % (0-20)
+    # -----------------------
+    if atr_percent >= 2.0:
+        atr_points = 20
+    elif atr_percent >= 1.5:
+        atr_points = 16
+    elif atr_percent >= 1.0:
+        atr_points = 12
+    elif atr_percent >= 0.7:
+        atr_points = 8
+    elif atr_percent >= 0.4:
+        atr_points = 4
+    else:
+        atr_points = 0
 
-    # Volatility
-    if atr_percent > 0.50:
-        score += 30
-    elif atr_percent > 0.30:
-        score += 20
-    elif atr_percent > 0.15:
-        score += 10
+    score = ema_points + trend_points + atr_points
 
-    return min(score, 100)
+    return round(min(score, 100), 1)
