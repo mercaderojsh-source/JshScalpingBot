@@ -6,6 +6,8 @@ from config import (
     LIVE_TRADING,
 )
 
+from intelligence.brain import intelligence_score
+
 from exchange.bitget import get_candles
 
 from indicators.ema import calculate_ema
@@ -170,6 +172,9 @@ while True:
             "higher_timeframe": htf["trend"],
             "score": score
         })
+
+        results[-1]["brain_score"] =  intelligence_score(results[-1])
+        results[-1]["score"] = results[-1]["brain_score"]
 
     if not results:
         print("⚠️ No market data received.")
