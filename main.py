@@ -138,28 +138,23 @@ while True:
 
         atr_percent = (atr / price) * 100
 
-        score = final_score(
-            confidence,
-            vol,
+        momentum = momentum_score(
+            ema_gap,
             trend,
-            state,
-            setup
+            atr_percent
         )
 
-        if "BUY" in setup and htf["trend"] == "BUY":
-            score += 10
+        quality = quality_score(
+            confidence,
+            setup,
+            htf["trend"]
+        )
 
-        elif "SELL" in setup and htf["trend"] == "SELL":
-            score += 10
-
-        elif (
-            ("BUY" in setup and htf["trend"] == "SELL")
-            or
-            ("SELL" in setup and htf["trend"] == "BUY")
-        ):
-            score -= 10
-
-        score = max(0, min(score, 100))
+        score = opportunity_score(
+            momentum,
+            quality,
+            vol
+        )
 
         results.append({
             "pair": pair,
