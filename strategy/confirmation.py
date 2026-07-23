@@ -1,6 +1,3 @@
-from config import MIN_SCORE
-
-
 def confirm_entry(
     setup,
     market_state,
@@ -9,39 +6,61 @@ def confirm_entry(
     atr_percent
 ):
     """
-    Final filter before opening a trade.
-
-    Returns:
-        True / False
+    Intelligent trade confirmation.
+    Returns True if the setup passes all filters.
     """
 
-    print("\n📝 ENTRY FILTER")
-
-    # Ignore weak setups
+    # -----------------------
+    # Ignore watchlist setups
+    # -----------------------
     if "WATCHLIST" in setup:
-        print("❌ Rejected: WATCHLIST setup")
+        print("❌ Rejected: Watchlist setup")
         return False
 
-    # Ignore ranging/quiet markets
-    if market_state in ["🌊 RANGING", "😴 QUIET"]:
-        print(f"❌ Rejected: Market State = {market_state}")
+    # -----------------------
+    # Adaptive minimum score
+    # -----------------------
+    minimum_score = 75
+
+    if "TRENDING" in market_state:
+        minimum_score = 70
+
+    elif "QUIET" in market_state:
+        minimum_score = 60
+
+    # -----------------------
+    # Score filter
+    # -----------------------
+    if score < minimum_score:
+        print(
+            f"❌ Rejected: "
+            f"Score={score:.1f} "
+            f"(Need {minimum_score}, "
+            f"Missing {minimum_score-score:.1f})"
+        )
         return False
 
-    # Require minimum strategy score
-    if score < MIN_SCORE:
-        print(f"❌ Rejected: Score = {score:.1f} (Minimum = {MIN_SCORE})")
+    # -----------------------
+    # RSI filter
+    # -----------------------
+    if rsi > 80 or rsi < 20:
+        print(
+            f"❌ Rejected: Extreme RSI ({rsi:.1f})"
+        )
         return False
 
-    # Avoid chasing overextended moves
-    if rsi > 72 or rsi < 28:
-        print(f"❌ Rejected: RSI = {rsi:.2f}")
+    # -----------------------
+    # ATR filter
+    # -----------------------
+    if atr_percent < 0.02:
+        print(
+            f"❌ Rejected: ATR too low ({atr_percent:.2f}%)"
+        )
         return False
 
-    # Require sufficient volatility
-    if atr_percent < 0.05:
-        print(f"❌ Rejected: ATR % = {atr_percent:.2f}%")
-        return False
-
-    print("✅ ENTRY APPROVED")
+    print(
+        f"✅ Passed confirmation "
+        f"(Threshold={minimum_score})"
+    )
 
     return True
