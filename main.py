@@ -10,6 +10,7 @@ from config import (
 from intelligence.momentum import momentum_score
 from intelligence.quality import quality_score
 from intelligence.opportunity import opportunity_score
+from intelligence.memory import remember
 
 from intelligence.brain import intelligence_score
 
@@ -78,8 +79,6 @@ if os.path.exists(journal.filename):
     print("=============================\n")
 
 send_message("🤖 JshScalpingBot Started")
-
-previous_scores = {}
 
 while True:
 
@@ -177,11 +176,7 @@ while True:
             price
         )
 
-        previous_momentum = previous_scores.get(pair, momentum)
-
-        momentum_change = momentum - previous_momentum
-
-        previous_scores[pair] = momentum
+        previous_momentum, momentum_change = remember(pair, momentum)
 
         print(
              f"{pair} | "
