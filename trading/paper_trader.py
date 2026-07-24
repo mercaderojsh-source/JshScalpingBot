@@ -7,19 +7,44 @@ from config import (
 
 from trading.risk_manager import calculate_levels
 from trading.position_sizer import calculate_position_size
-
+from trading.paper_state import load_state, save_state
 
 class PaperTrader:
 
     def __init__(self):
-        self.balance = START_BALANCE
-        self.position = None
-        self.trade_count = 0
-        self.wins = 0
-        self.losses = 0
 
-        # Pair cooldowns
-        self.cooldowns = {}
+        state = load_state()
+
+        if state:
+
+            self.balance = state["balance"]
+            self.position = state["position"]
+            self.trade_count = state["trade_count"]
+            self.wins = state["wins"]
+            self.losses = state["losses"]
+            self.cooldowns = state["cooldowns"]
+
+            print("💾 Paper account restored.")
+
+        else:
+
+            self.balance = START_BALANCE
+            self.position = None
+            self.trade_count = 0
+            self.wins = 0
+            self.losses = 0
+            self.cooldowns = {}
+
+    def save(self):
+
+        save_state({
+            "balance": self.balance,
+            "position": self.position,
+            "trade_count": self.trade_count,
+            "wins": self.wins,
+            "losses": self.losses,
+            "cooldowns": self.cooldowns
+        })
 
     # ---------------------------------
     # Cooldown Checker
