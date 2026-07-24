@@ -1,4 +1,11 @@
-def momentum_score(trend_strength, atr_percent):
+def momentum_score(
+    trend_strength,
+    atr_percent,
+    ema9,
+    ema21,
+    ema50,
+    price
+):
     """
     Momentum Score (0-100)
 
