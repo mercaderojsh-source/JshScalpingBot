@@ -288,18 +288,6 @@ while True:
 
             if exit_signal:
 
-                print("✅ EXIT TRIGGERED")
-
-                trade = trader.close_trade(item["price"])
-
-                print("Trade Closed:", trade)
-
-                journal.log_trade(
-                ...
-                )
-
-            if exit_signal:
-
                 trade = trader.close_trade(item["price"])
 
                 journal.log_trade(
