@@ -102,6 +102,8 @@ class PaperTrader:
         print(f"🛑 Stop Loss : {levels['stop_loss']}")
         print(f"🎯 Take Profit : {levels['take_profit']}")
 
+        self.save()
+
         return self.position
 
     def execute_trade(
@@ -180,6 +182,8 @@ class PaperTrader:
 
             self.position["stop_loss"] = entry
             self.position["break_even"] = True
+            
+            self.save()
 
             print(f"🛡 Break-even activated for {self.position['pair']}")
 
@@ -205,6 +209,8 @@ class PaperTrader:
 
             self.position["remaining_size"] -= partial_size
             self.position["partial_taken"] = True
+
+            self.save()
 
             print(f"💵 PARTIAL TAKE PROFIT {self.position['pair']}")
             print(f"Realized PnL : {round(partial_pnl, 2)}")
@@ -237,6 +243,8 @@ class PaperTrader:
 
                     self.position["stop_loss"] = new_stop
 
+                    self.save()
+
                     print(
                         f"📈 Trailing Stop Updated: "
                         f"{self.position['pair']} -> "
@@ -256,6 +264,8 @@ class PaperTrader:
                 if new_stop < self.position["stop_loss"]:
 
                     self.position["stop_loss"] = new_stop
+                    
+                    self.save()
 
                     print(
                         f"📉 Trailing Stop Updated: "
@@ -321,6 +331,8 @@ class PaperTrader:
         }
 
         self.position = None
+
+        self.save()
 
         return trade
 
