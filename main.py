@@ -79,6 +79,8 @@ if os.path.exists(journal.filename):
 
 send_message("🤖 JshScalpingBot Started")
 
+previous_scores = {}
+
 while True:
 
     print("\n" + "=" * 60)
@@ -175,11 +177,18 @@ while True:
             price
         )
 
+        previous_momentum = previous_scores.get(pair, momentum)
+
+        momentum_change = momentum - previous_momentum
+
+        previous_scores[pair] = momentum
+
         print(
-            f"{pair} | "
-            f"Trend={trend}/20 | "
-            f"ATR={atr_percent:.2f}% | "
-            f"Momentum={momentum}"
+             f"{pair} | "
+             f"Trend={trend}/20 | "
+             f"ATR={atr_percent:.2f}% | "
+             f"Momentum={momentum} | "
+             f"ΔMomentum={momentum_change:+.1f}"
         )
 
         quality = quality_score(
