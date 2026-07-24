@@ -36,7 +36,8 @@ PAIRS = [
     "ETHUSDT",
     "SOLUSDT",
     "XRPUSDT",
-    "BGBUSDT",
+    "DOGEUSDT",
+    "XAUUSDT",
 ]
 
 # =========================
