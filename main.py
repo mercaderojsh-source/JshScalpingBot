@@ -1,4 +1,5 @@
 import time
+from trading.performance import performance_summary
 
 from config import (
     PAIRS,
@@ -44,6 +45,21 @@ else:
     print("🟡 PAPER TRADING ENABLED")
 
 journal = TradeJournal()
+
+stats = performance_summary()
+
+print("\n📊 Historical Performance")
+print(f"Trades   : {stats['trades']}")
+print(f"Wins     : {stats['wins']}")
+print(f"Losses   : {stats['losses']}")
+print(f"Win Rate : {stats['win_rate']}%")
+print(f"Net PnL  : ${stats['net_profit']}")
+print("-" * 60)
+
+import os
+
+print("Journal File :", os.path.abspath(journal.filename))
+print("Journal Exists :", os.path.exists(journal.filename))
 
 print("=" * 60)
 print("🚀 JshScalpingBot Intelligent Scanner")
