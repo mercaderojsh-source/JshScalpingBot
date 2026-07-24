@@ -6,7 +6,8 @@ PAIRS = [
     "ETHUSDT",
     "SOLUSDT",
     "XRPUSDT",
-    "DOGEUSDT"
+    "DOGEUSDT",
+    "XAUUSDT",
 ]
 
 
