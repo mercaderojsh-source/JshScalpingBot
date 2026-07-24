@@ -168,7 +168,11 @@ while True:
 
         momentum = momentum_score(
             trend,
-            atr_percent
+            atr_percent,
+            ema9,
+            ema21,
+            ema50,
+            price
         )
 
         print(
