@@ -65,6 +65,18 @@ print("=" * 60)
 print("🚀 JshScalpingBot Intelligent Scanner")
 print("=" * 60)
 
+if os.path.exists(journal.filename):
+    print("\n===== trade_history.csv =====")
+
+    with open(journal.filename, "r") as f:
+        for i, line in enumerate(f):
+            print(line.strip())
+
+            if i >= 10:
+                break
+
+    print("=============================\n")
+
 send_message("🤖 JshScalpingBot Started")
 
 while True:
