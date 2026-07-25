@@ -1,26 +1,13 @@
 {
-    "balance": 14.819272640749979,
-    "position": {
-        "pair": "DOGEUSDT",
-        "direction": "SELL",
-        "entry": 0.06929,
-        "opened_at": 0.06929,
-        "atr": 3.428571428571586e-05,
-        "initial_stop": 0.0693,
-        "stop_loss": 0.06929,
-        "take_profit": 0.0692,
-        "size": 961.180843,
-        "remaining_size": 480.5904215,
-        "break_even": true,
-        "partial_taken": true
-    },
-    "trade_count": 11,
+    "balance": 14.80004902388998,
+    "position": null,
+    "trade_count": 12,
     "wins": 1,
-    "losses": 10,
+    "losses": 11,
     "cooldowns": {
         "SOLUSDT": 1784955012.7850614,
         "ETHUSDT": 1784943582.7001247,
-        "DOGEUSDT": 1784958754.3787034,
+        "DOGEUSDT": 1784959167.7106416,
         "XRPUSDT": 1784955694.875616
     }
 }
