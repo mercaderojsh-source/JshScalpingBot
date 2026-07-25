@@ -1,0 +1,21 @@
+{
+    "balance": 15.0,
+    "position": {
+        "pair": "SOLUSDT",
+        "direction": "BUY",
+        "entry": 74.082,
+        "opened_at": 74.082,
+        "atr": 0.023000000000002224,
+        "initial_stop": 74.059,
+        "stop_loss": 74.059,
+        "take_profit": 74.128,
+        "size": 0.911153,
+        "remaining_size": 0.911153,
+        "break_even": false,
+        "partial_taken": false
+    },
+    "trade_count": 0,
+    "wins": 0,
+    "losses": 0,
+    "cooldowns": {}
+}
