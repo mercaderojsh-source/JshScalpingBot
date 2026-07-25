@@ -4,8 +4,9 @@ import requests
 
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 
+# Backup Repository
 OWNER = "mercaderojsh-source"
-REPO = "JshScalpingBot"
+REPO = "JshScalpingBot-Backup"
 BRANCH = "main"
 
 
@@ -47,10 +48,13 @@ def upload_file(local_path, repo_path):
     if r.status_code == 200:
         sha = r.json()["sha"]
         print("DEBUG: Existing file found.")
+
     elif r.status_code == 404:
         print("DEBUG: File does not exist yet.")
+
     else:
         print(f"DEBUG GET ERROR: {r.text}")
+        return
 
     payload = {
         "message": f"Backup {repo_path}",
@@ -61,11 +65,16 @@ def upload_file(local_path, repo_path):
     if sha:
         payload["sha"] = sha
 
-    r = requests.put(url, headers=headers, json=payload)
+    r = requests.put(
+        url,
+        headers=headers,
+        json=payload
+    )
 
     print(f"DEBUG: PUT status = {r.status_code}")
 
     if r.status_code in (200, 201):
         print(f"☁ Backed up {repo_path}")
+
     else:
         print(f"DEBUG PUT ERROR: {r.text}")
