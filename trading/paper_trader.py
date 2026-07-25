@@ -29,7 +29,7 @@ class PaperTrader:
             self.losses = state["losses"]
             self.cooldowns = state["cooldowns"]
 
-            print("💾 Paper account restored."
+            print("💾 Paper account restored.")
 
         else:
 
