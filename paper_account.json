@@ -1,6 +1,19 @@
 {
     "balance": 14.769411249889986,
-    "position": null,
+    "position": {
+        "pair": "DOGEUSDT",
+        "direction": "SELL",
+        "entry": 0.06932,
+        "opened_at": 0.06932,
+        "atr": 3.785714285714206e-05,
+        "initial_stop": 0.0694,
+        "stop_loss": 0.0694,
+        "take_profit": 0.0692,
+        "size": 958.775976,
+        "remaining_size": 958.775976,
+        "break_even": false,
+        "partial_taken": false
+    },
     "trade_count": 13,
     "wins": 1,
     "losses": 12,
