@@ -10,6 +10,7 @@ from trading.position_sizer import calculate_position_size
 from trading.paper_state import load_state, save_state, STATE_FILE
 from utils.github_backup import upload_file
 
+
 class PaperTrader:
 
     def __init__(self):
@@ -59,7 +60,14 @@ class PaperTrader:
 
         return time.time() < self.cooldowns[pair]
 
-    def open_trade(self, pair, direction, price, atr):
+    def open_trade(
+        self,
+        pair,
+        direction,
+        price,
+        atr,
+        context=None
+    ):
 
         if self.position is not None:
             return False
@@ -83,6 +91,20 @@ class PaperTrader:
             "entry": price,
             "opened_at": price,
             "atr": atr,
+
+            "context": {
+                "setup": context.get("setup"),
+                "market_state": context.get("market_state"),
+                "higher_timeframe": context.get("higher_timeframe"),
+                "brain_score": context.get("brain_score"),
+                "confidence": context.get("confidence"),
+                "momentum": context.get("momentum"),
+                "quality": context.get("quality"),
+                "trend_strength": context.get("trend_strength"),
+                "volatility_score": context.get("volatility_score"),
+                "rsi": context.get("rsi"),
+                "atr_percent": context.get("atr_percent")
+            } if context else {},
 
             # Original risk level
             "initial_stop": levels["stop_loss"],
@@ -114,13 +136,15 @@ class PaperTrader:
         pair,
         direction,
         entry_price,
-        atr
+        atr,
+        context=None
     ):
         return self.open_trade(
             pair=pair,
             direction=direction,
             price=entry_price,
-            atr=atr
+            atr=atr,
+            context=context
         )
 
     def check_exit(self, current_price):
@@ -185,7 +209,7 @@ class PaperTrader:
 
             self.position["stop_loss"] = entry
             self.position["break_even"] = True
-            
+
             self.save()
 
             print(f"🛡 Break-even activated for {self.position['pair']}")
@@ -267,7 +291,7 @@ class PaperTrader:
                 if new_stop < self.position["stop_loss"]:
 
                     self.position["stop_loss"] = new_stop
-                    
+
                     self.save()
 
                     print(
@@ -330,13 +354,14 @@ class PaperTrader:
             "stop_loss": self.position["stop_loss"],
             "take_profit": self.position["take_profit"],
             "size": self.position["size"],
-            "remaining_size": self.position["remaining_size"]
+            "remaining_size": self.position["remaining_size"],
+            "context": self.position.get("context", {})
         }
 
         self.position = None
 
         self.save()
-     
+
         return trade
 
     def stats(self):
