@@ -7,7 +7,7 @@ from config import (
 
 from trading.risk_manager import calculate_levels
 from trading.position_sizer import calculate_position_size
-from trading.paper_state import load_state, save_state
+from trading.paper_state import load_state, save_state, STATE_FILE
 from utils.github_backup import upload_file
 
 class PaperTrader:
@@ -47,7 +47,7 @@ class PaperTrader:
             "cooldowns": self.cooldowns
         })
 
-        upload_file("paper_account.json", "paper_account.json")
+        upload_file(STATE_FILE, "paper_account.json")
 
     # ---------------------------------
     # Cooldown Checker
