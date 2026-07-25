@@ -1,3 +1,4 @@
+import os
 import time
 from trading.performance import performance_summary
 
@@ -11,7 +12,6 @@ from intelligence.momentum import momentum_score
 from intelligence.quality import quality_score
 from intelligence.opportunity import opportunity_score
 from intelligence.memory import remember
-
 from intelligence.brain import intelligence_score
 
 from exchange.bitget import get_candles
@@ -56,8 +56,6 @@ print(f"Losses   : {stats['losses']}")
 print(f"Win Rate : {stats['win_rate']}%")
 print(f"Net PnL  : ${stats['net_profit']}")
 print("-" * 60)
-
-import os
 
 print("Journal File :", os.path.abspath(journal.filename))
 print("Journal Exists :", os.path.exists(journal.filename))
@@ -113,12 +111,14 @@ while True:
         atr = calculate_atr(highs, lows, closes)
         rsi = calculate_rsi(closes)
 
+        # Updated to pass price for percentage-based normalized metrics
         signal = generate_signal(
             ema9,
             ema21,
             ema50,
             atr,
-            rsi
+            rsi,
+            price
         )
 
         setup = detect_setup(
@@ -126,7 +126,7 @@ while True:
             ema21,
             ema50,
             rsi,
-            atr
+            price
         )
 
         confidence = confidence_score(
@@ -217,7 +217,7 @@ while True:
             "score": score
         })
 
-        results[-1]["brain_score"] =  intelligence_score(results[-1])
+        results[-1]["brain_score"] = intelligence_score(results[-1])
         results[-1]["score"] = results[-1]["brain_score"]
 
     if not results:
@@ -291,7 +291,7 @@ while True:
             # Exit Check
             # -----------------------------
             exit_signal = trader.check_exit(item["price"])
-            
+
             print(f"Exit Signal: {exit_signal}")
 
             if exit_signal:
@@ -358,6 +358,19 @@ while True:
 
             # Skip WATCHLIST setups
             if "WATCHLIST" in best["setup"]:
+                continue
+
+            # ----------------------------------------------------
+            # HARD FILTER: Never trade against Higher Timeframe
+            # ----------------------------------------------------
+            htf_trend = str(best["higher_timeframe"]).upper()
+
+            if "BUY" in best["setup"] and "BULL" not in htf_trend:
+                print(f"🚫 Skipped BUY on {best['pair']}: HTF Trend is {htf_trend}")
+                continue
+
+            if "SELL" in best["setup"] and "BEAR" not in htf_trend:
+                print(f"🚫 Skipped SELL on {best['pair']}: HTF Trend is {htf_trend}")
                 continue
 
             print("\n🎯 CHECKING SETUP")
