@@ -1,24 +1,11 @@
 {
-    "balance": 14.80004902388998,
-    "position": {
-        "pair": "SOLUSDT",
-        "direction": "SELL",
-        "entry": 73.909,
-        "opened_at": 73.909,
-        "atr": 0.033928571428571024,
-        "initial_stop": 73.9429,
-        "stop_loss": 73.9429,
-        "take_profit": 73.8411,
-        "size": 0.901111,
-        "remaining_size": 0.901111,
-        "break_even": false,
-        "partial_taken": false
-    },
-    "trade_count": 12,
+    "balance": 14.769411249889986,
+    "position": null,
+    "trade_count": 13,
     "wins": 1,
-    "losses": 11,
+    "losses": 12,
     "cooldowns": {
-        "SOLUSDT": 1784955012.7850614,
+        "SOLUSDT": 1784959558.3910198,
         "ETHUSDT": 1784943582.7001247,
         "DOGEUSDT": 1784959167.7106416,
         "XRPUSDT": 1784955694.875616
