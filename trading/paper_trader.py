@@ -1,5 +1,9 @@
 import time
 
+import utils.github_backup
+
+print("DEBUG IMPORT:", utils.github_backup.__file__)
+
 from config import (
     START_BALANCE,
     RISK_PER_TRADE,
