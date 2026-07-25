@@ -10,6 +10,9 @@ from trading.position_sizer import calculate_position_size
 from trading.paper_state import load_state, save_state, STATE_FILE
 from utils.github_backup import upload_file
 
+# Bitget Taker Fee Rate (0.06% per execution = 0.12% roundtrip)
+TAKER_FEE_RATE = 0.0006
+
 
 class PaperTrader:
 
@@ -18,18 +21,14 @@ class PaperTrader:
         state = load_state()
 
         if state:
-
             self.balance = state["balance"]
             self.position = state["position"]
             self.trade_count = state["trade_count"]
             self.wins = state["wins"]
             self.losses = state["losses"]
             self.cooldowns = state["cooldowns"]
-
             print("💾 Paper account restored.")
-
         else:
-
             self.balance = START_BALANCE
             self.position = None
             self.trade_count = 0
@@ -50,9 +49,6 @@ class PaperTrader:
 
         upload_file(STATE_FILE, "paper_account.json")
 
-    # ---------------------------------
-    # Cooldown Checker
-    # ---------------------------------
     def in_cooldown(self, pair):
 
         if pair not in self.cooldowns:
@@ -85,6 +81,11 @@ class PaperTrader:
             stop_loss=levels["stop_loss"]
         )
 
+        # Deduct Bitget entry taker fee
+        entry_notional = position_size * price
+        entry_fee = entry_notional * TAKER_FEE_RATE
+        self.balance -= entry_fee
+
         self.position = {
             "pair": pair,
             "direction": direction,
@@ -106,18 +107,13 @@ class PaperTrader:
                 "atr_percent": context.get("atr_percent")
             } if context else {},
 
-            # Original risk level
             "initial_stop": levels["stop_loss"],
-
-            # Active levels
             "stop_loss": levels["stop_loss"],
             "take_profit": levels["take_profit"],
 
-            # Position sizing
             "size": position_size,
             "remaining_size": position_size,
 
-            # Trade management flags
             "break_even": False,
             "partial_taken": False
         }
@@ -126,6 +122,7 @@ class PaperTrader:
         print(f"📦 Position Size : {position_size}")
         print(f"🛑 Stop Loss : {levels['stop_loss']}")
         print(f"🎯 Take Profit : {levels['take_profit']}")
+        print(f"💸 Entry Fee Deducted: ${entry_fee:.4f}")
 
         self.save()
 
@@ -156,22 +153,16 @@ class PaperTrader:
         stop_loss = self.position["stop_loss"]
         take_profit = self.position["take_profit"]
 
-        # Ignore original TP after partial take profit
         trailing_only = self.position["partial_taken"]
 
         if direction == "BUY":
-
             if not trailing_only and current_price >= take_profit:
                 return "TP"
-
             if current_price <= stop_loss:
                 return "SL"
-
         else:
-
             if not trailing_only and current_price <= take_profit:
                 return "TP"
-
             if current_price >= stop_loss:
                 return "SL"
 
@@ -186,71 +177,63 @@ class PaperTrader:
         initial_stop = self.position["initial_stop"]
         direction = self.position["direction"]
 
-        # Initial risk (1R)
         risk = abs(entry - initial_stop)
 
         if risk == 0:
             return None
 
-        if direction == "BUY":
-            profit = current_price - entry
-        else:
-            profit = entry - current_price
-
+        profit = (current_price - entry) if direction == "BUY" else (entry - current_price)
         r_multiple = profit / risk
 
         # -----------------------------
-        # Stage 1: Break-even
+        # Stage 1: Break-even at 1.2R (with fee buffer)
         # -----------------------------
-        if (
-            not self.position["break_even"]
-            and r_multiple >= 1
-        ):
+        if not self.position["break_even"] and r_multiple >= 1.2:
 
-            self.position["stop_loss"] = entry
+            fee_buffer = entry * (TAKER_FEE_RATE * 2)
+
+            if direction == "BUY":
+                self.position["stop_loss"] = entry + fee_buffer
+            else:
+                self.position["stop_loss"] = entry - fee_buffer
+
             self.position["break_even"] = True
-
             self.save()
 
-            print(f"🛡 Break-even activated for {self.position['pair']}")
+            print(f"🛡 Break-even (+Fee Buffer) activated for {self.position['pair']}")
 
             return "BREAK_EVEN"
 
         # -----------------------------
-        # Stage 2: Partial Take Profit
+        # Stage 2: Partial Take Profit at 2.0R
         # -----------------------------
         if (
             self.position["break_even"]
             and not self.position["partial_taken"]
-            and r_multiple >= 2
+            and r_multiple >= 2.0
         ):
 
             partial_size = self.position["remaining_size"] / 2
 
-            if direction == "BUY":
-                partial_pnl = (current_price - entry) * partial_size
-            else:
-                partial_pnl = (entry - current_price) * partial_size
+            gross_pnl = (current_price - entry) * partial_size if direction == "BUY" else (entry - current_price) * partial_size
+            exit_fee = (partial_size * current_price) * TAKER_FEE_RATE
+            net_pnl = gross_pnl - exit_fee
 
-            self.balance += partial_pnl
-
+            self.balance += net_pnl
             self.position["remaining_size"] -= partial_size
             self.position["partial_taken"] = True
 
             self.save()
 
             print(f"💵 PARTIAL TAKE PROFIT {self.position['pair']}")
-            print(f"Realized PnL : {round(partial_pnl, 2)}")
-            print(
-                f"Remaining Size : "
-                f"{self.position['remaining_size']:.6f}"
-            )
-            print(f"Balance : {round(self.balance, 2)}")
+            print(f"Net Realized PnL : ${round(net_pnl, 2)}")
+            print(f"Remaining Size : {self.position['remaining_size']:.6f}")
+            print(f"Balance : ${round(self.balance, 2)}")
 
             return {
                 "event": "PARTIAL_TP",
                 "pair": self.position["pair"],
-                "pnl": partial_pnl,
+                "pnl": net_pnl,
                 "remaining_size": self.position["remaining_size"],
                 "balance": self.balance
             }
@@ -263,43 +246,22 @@ class PaperTrader:
             atr = self.position["atr"]
 
             if direction == "BUY":
-
                 new_stop = current_price - atr
-
                 if new_stop > self.position["stop_loss"]:
-
                     self.position["stop_loss"] = new_stop
-
                     self.save()
-
-                    print(
-                        f"📈 Trailing Stop Updated: "
-                        f"{self.position['pair']} -> "
-                        f"{new_stop:.4f}"
-                    )
-
+                    print(f"📈 Trailing Stop Updated: {self.position['pair']} -> {new_stop:.4f}")
                     return {
                         "event": "TRAILING_STOP",
                         "pair": self.position["pair"],
                         "stop_loss": new_stop
                     }
-
             else:
-
                 new_stop = current_price + atr
-
                 if new_stop < self.position["stop_loss"]:
-
                     self.position["stop_loss"] = new_stop
-
                     self.save()
-
-                    print(
-                        f"📉 Trailing Stop Updated: "
-                        f"{self.position['pair']} -> "
-                        f"{new_stop:.4f}"
-                    )
-
+                    print(f"📉 Trailing Stop Updated: {self.position['pair']} -> {new_stop:.4f}")
                     return {
                         "event": "TRAILING_STOP",
                         "pair": self.position["pair"],
@@ -316,32 +278,26 @@ class PaperTrader:
         entry = self.position["entry"]
         direction = self.position["direction"]
         pair = self.position["pair"]
-
-        # Close only the remaining open size
         size = self.position["remaining_size"]
 
-        if direction == "BUY":
-            pnl = (current_price - entry) * size
-        else:
-            pnl = (entry - current_price) * size
+        gross_pnl = (current_price - entry) * size if direction == "BUY" else (entry - current_price) * size
+        exit_fee = (size * current_price) * TAKER_FEE_RATE
+        net_pnl = gross_pnl - exit_fee
 
-        self.balance += pnl
+        self.balance += net_pnl
         self.trade_count += 1
 
-        if pnl > 0:
+        if net_pnl > 0:
             self.wins += 1
         else:
             self.losses += 1
 
         print(f"💰 CLOSE {pair}")
-        print(f"PnL : {round(pnl, 2)}")
-        print(f"Balance : {round(self.balance, 2)}")
+        print(f"Net PnL : ${round(net_pnl, 2)}")
+        print(f"Balance : ${round(self.balance, 2)}")
 
-        # -----------------------------
-        # Start 5-minute cooldown
-        # -----------------------------
+        # 5-minute cooldown
         self.cooldowns[pair] = time.time() + 300
-
         print(f"⏳ {pair} cooldown started (5 minutes)")
 
         trade = {
@@ -349,7 +305,7 @@ class PaperTrader:
             "direction": direction,
             "entry": entry,
             "exit": current_price,
-            "pnl": pnl,
+            "pnl": net_pnl,
             "balance": self.balance,
             "stop_loss": self.position["stop_loss"],
             "take_profit": self.position["take_profit"],
@@ -359,29 +315,18 @@ class PaperTrader:
         }
 
         self.position = None
-
         self.save()
 
         return trade
 
     def stats(self):
 
-        if self.trade_count == 0:
-            win_rate = 0
-        else:
-            win_rate = round(
-                (self.wins / self.trade_count) * 100,
-                2
-            )
-
+        win_rate = 0 if self.trade_count == 0 else round((self.wins / self.trade_count) * 100, 2)
         active_cooldowns = {}
-
         now = time.time()
 
         for pair, expiry in self.cooldowns.items():
-
             remaining = int(expiry - now)
-
             if remaining > 0:
                 active_cooldowns[pair] = remaining
 
