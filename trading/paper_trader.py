@@ -31,6 +31,9 @@ class PaperTrader:
 
             print("💾 Paper account restored.")
 
+            print("DEBUG: Testing upload...")
+upload_file(STATE_FILE, "paper_account.json")
+
         else:
 
             self.balance = START_BALANCE
