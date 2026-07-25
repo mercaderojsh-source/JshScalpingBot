@@ -14,7 +14,4 @@ def quality_score(
     elif htf == "SELL" and "SELL" in setup:
         score += 15
 
-    elif htf == "NEUTRAL":
-        score += 5
-
     return min(score, 100)
