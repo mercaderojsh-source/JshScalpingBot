@@ -299,13 +299,9 @@ while True:
                 trade = trader.close_trade(item["price"])
 
                 journal.log_trade(
-                    pair=trade["pair"],
-                    direction=trade["direction"],
-                    entry=trade["entry"],
-                    exit_price=trade["exit"],
-                    pnl=trade["pnl"],
-                    reason=exit_signal,
-                    balance=trade["balance"]
+                    trade=trade,
+                    context=trade.get("context", {}),
+                    exit_reason=exit_signal
                 )
 
                 send_message(
@@ -393,7 +389,8 @@ while True:
                 best["pair"],
                 direction,
                 best["price"],
-                best["atr"]
+                best["atr"],
+                context=best
             )
 
             if not trade:
