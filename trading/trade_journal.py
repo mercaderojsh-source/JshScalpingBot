@@ -1,5 +1,6 @@
 import csv
 import os
+from utils.github_backup import upload_file
 from datetime import datetime
 
 
@@ -48,3 +49,5 @@ class TradeJournal:
                 reason,
                 round(balance, 2)
             ])
+
+        upload_file(self.filename, "trade_history.csv")
