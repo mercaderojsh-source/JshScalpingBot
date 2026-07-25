@@ -29,10 +29,7 @@ class PaperTrader:
             self.losses = state["losses"]
             self.cooldowns = state["cooldowns"]
 
-            print("💾 Paper account restored.")
-
-            print("DEBUG: Testing upload...")
-            upload_file(STATE_FILE, "paper_account.json")
+            print("💾 Paper account restored."
 
         else:
 
