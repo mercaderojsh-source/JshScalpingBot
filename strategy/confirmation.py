@@ -6,7 +6,7 @@ def confirm_entry(
     atr_percent
 ):
     """
-    Intelligent trade confirmation.
+    Intelligent trade confirmation with fee & noise filters.
     Returns True if the setup passes all filters.
     """
 
@@ -20,13 +20,10 @@ def confirm_entry(
     # -----------------------
     # Adaptive minimum score
     # -----------------------
-    # Recalibrated after Brain Score became the
-    # primary decision metric.
     minimum_score = 60
 
     if "TRENDING" in market_state:
         minimum_score = 55
-
     elif "QUIET" in market_state:
         minimum_score = 50
 
@@ -43,26 +40,22 @@ def confirm_entry(
         return False
 
     # -----------------------
-    # RSI filter
+    # RSI Extreme Filter
     # -----------------------
-    if rsi > 80 or rsi < 20:
-        print(
-            f"❌ Rejected: Extreme RSI ({rsi:.1f})"
-        )
+    if rsi > 75 or rsi < 25:
+        print(f"❌ Rejected: Extreme RSI ({rsi:.1f})")
         return False
 
     # -----------------------
-    # ATR filter
+    # ATR Fee-Coverage Filter
+    # Requires min 0.08% move potential to exceed Bitget roundtrip fees (~0.12%)
     # -----------------------
-    if atr_percent < 0.02:
+    if atr_percent < 0.08:
         print(
-            f"❌ Rejected: ATR too low ({atr_percent:.2f}%)"
+            f"❌ Rejected: ATR too low ({atr_percent:.2f}% < 0.08% fee barrier)"
         )
         return False
 
-    print(
-        f"✅ Passed confirmation "
-        f"(Threshold={minimum_score})"
-    )
+    print(f"✅ Passed confirmation (Threshold={minimum_score})")
 
     return True
