@@ -43,9 +43,6 @@ def final_score(
     if "STRONG" in setup:
         score += 15
 
-    elif "BUY" in setup or "SELL" in setup:
-        score += 8
-
     if "WATCHLIST" in setup:
         score -= 30
 
