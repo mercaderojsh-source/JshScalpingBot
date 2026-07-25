@@ -341,8 +341,6 @@ class PaperTrader:
 
         self.save()
      
-        upload_file("trade_history.csv", "trade_history.csv")
-
         return trade
 
     def stats(self):
