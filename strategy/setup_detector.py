@@ -29,7 +29,7 @@ def detect_setup(
     if (
         ema9 > ema21
         and ema21 >= ema50
-        and rsi < 70
+        and 45 <= rsi < 70
     ):
         return "🟢 BUY"
 
@@ -48,7 +48,7 @@ def detect_setup(
     if (
         ema9 < ema21
         and ema21 <= ema50
-        and rsi > 30
+        and 30 < rsi <= 55
     ):
         return "🔴 SELL"
 
