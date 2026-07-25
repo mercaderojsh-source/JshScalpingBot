@@ -37,33 +37,30 @@ PAIRS = [
     "SOLUSDT",
     "XRPUSDT",
     "DOGEUSDT",
-    "XAUUSDT",
 ]
 
 # =========================
 # Scanner
 # =========================
 
-SCAN_INTERVAL = 30           # Seconds
+SCAN_INTERVAL = 15           # Scan every 15 seconds for fast 1m setups
 
 # =========================
-# Strategy
+# Strategy Thresholds
 # =========================
 
-MIN_SCORE = 75
+MIN_SCORE = 60
 
 # =========================
 # Risk Management
 # =========================
 
-RISK_PER_TRADE = 1.0         # % of account balance
-ATR_STOP_MULTIPLIER = 1.0
-TAKE_PROFIT_RR = 2.0         # 1 : 2 Risk/Reward
+RISK_PER_TRADE = 2.0         # % of account balance
+ATR_STOP_MULTIPLIER = 1.8    # Expanded stop loss distance to survive noise
+TAKE_PROFIT_RR = 1.5         # Realistic 1 : 1.5 Risk/Reward for 1m scalping
 
 # =========================
 # Paper Trading
 # =========================
 
 START_BALANCE = 15.00
-
-# Railway reconnect test
