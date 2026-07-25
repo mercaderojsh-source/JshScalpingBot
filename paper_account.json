@@ -7,11 +7,11 @@
         "opened_at": 74.255,
         "atr": 0.025857142857142485,
         "initial_stop": 74.2291,
-        "stop_loss": 74.2291,
+        "stop_loss": 74.255,
         "take_profit": 74.3067,
         "size": 0.898566,
         "remaining_size": 0.898566,
-        "break_even": false,
+        "break_even": true,
         "partial_taken": false
     },
     "trade_count": 8,
