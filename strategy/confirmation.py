@@ -20,13 +20,15 @@ def confirm_entry(
     # -----------------------
     # Adaptive minimum score
     # -----------------------
-    minimum_score = 75
+    # Recalibrated after Brain Score became the
+    # primary decision metric.
+    minimum_score = 60
 
     if "TRENDING" in market_state:
-        minimum_score = 70
+        minimum_score = 55
 
     elif "QUIET" in market_state:
-        minimum_score = 60
+        minimum_score = 50
 
     # -----------------------
     # Score filter
