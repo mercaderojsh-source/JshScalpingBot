@@ -336,6 +336,8 @@ class PaperTrader:
         self.position = None
 
         self.save()
+     
+        upload_file("trade_history.csv", "trade_history.csv")
 
         return trade
 
