@@ -18,5 +18,9 @@ def market_state(ema9, ema21, ema50, atr, rsi):
     if 45 <= rsi <= 55:
         return "🌊 RANGING"
 
-    # Quiet market
-    return "😴 QUIET"
+    # Low-volatility market
+    if atr < 30:
+        return "😴 QUIET"
+
+    # Mixed / transition market
+    return "🌤 TRANSITION"
