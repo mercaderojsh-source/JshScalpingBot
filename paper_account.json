@@ -1,6 +1,19 @@
 {
     "balance": 14.818353330689977,
-    "position": null,
+    "position": {
+        "pair": "XRPUSDT",
+        "direction": "BUY",
+        "entry": 1.0929,
+        "opened_at": 1.0929,
+        "atr": 0.00034999999999996145,
+        "initial_stop": 1.0926,
+        "stop_loss": 1.0926,
+        "take_profit": 1.0936,
+        "size": 61.014356,
+        "remaining_size": 61.014356,
+        "break_even": false,
+        "partial_taken": false
+    },
     "trade_count": 9,
     "wins": 1,
     "losses": 8,
