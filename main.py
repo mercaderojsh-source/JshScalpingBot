@@ -7,6 +7,8 @@ from config import (
     PAIRS,
     SCAN_INTERVAL,
     LIVE_TRADING,
+    MIN_SCORE,
+    REQUIRE_STRONG_BUY,
 )
 
 from intelligence.momentum import momentum_score
@@ -369,6 +371,20 @@ while True:
 
                 # Skip WATCHLIST setups
                 if "WATCHLIST" in best["setup"]:
+                    continue
+
+                # ----------------------------------------------------
+                # SIGNAL QUALITY FILTER: Enforce Strong Buy/Sell only
+                # ----------------------------------------------------
+                if REQUIRE_STRONG_BUY and "STRONG" not in str(best["setup"]).upper():
+                    print(f"🚫 Skipped {best['pair']}: Setup '{best['setup']}' is not a STRONG BUY/SELL setup")
+                    continue
+
+                # ----------------------------------------------------
+                # SCORE FILTER: Minimum Brain / Intelligence Score
+                # ----------------------------------------------------
+                if best["brain_score"] < MIN_SCORE:
+                    print(f"🚫 Skipped {best['pair']}: Brain Score ({best['brain_score']:.1f}) < Minimum ({MIN_SCORE})")
                     continue
 
                 # ----------------------------------------------------
