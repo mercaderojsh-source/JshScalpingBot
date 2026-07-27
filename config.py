@@ -50,7 +50,7 @@ SCAN_INTERVAL = 10           # Scan every 10 seconds for rapid 1m setups
 # Strategy Thresholds
 # =========================
 
-MIN_SCORE = 56.5              # Higher score threshold for conviction setups
+MIN_SCORE = 32.0              # Calibrated score threshold for 1m intelligence scale
 REQUIRE_STRONG_BUY = True     # Enforce 'STRONG BUY' / 'STRONG SELL' setups only
 
 # =========================
