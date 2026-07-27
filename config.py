@@ -28,20 +28,16 @@ MAX_OPEN_POSITIONS = 1
 MAX_DAILY_LOSS = 3.0         # USDT
 
 # =========================
-# Trading Pairs (Expanded to 10 High-Volume Pairs)
+# Trading Pairs (Pruned to Top 6 High-Performance Trenders)
 # =========================
 
 PAIRS = [
-    "BTCUSDT",
-    "ETHUSDT",
-    "SOLUSDT",
-    "XRPUSDT",
-    "DOGEUSDT",
-    "AVAXUSDT",
     "LINKUSDT",
-    "NEARUSDT",
-    "APTUSDT",
+    "ETHUSDT",
+    "DOGEUSDT",
     "SUIUSDT",
+    "SOLUSDT",
+    "BTCUSDT"
 ]
 
 # =========================
@@ -54,7 +50,8 @@ SCAN_INTERVAL = 10           # Scan every 10 seconds for rapid 1m setups
 # Strategy Thresholds
 # =========================
 
-MIN_SCORE = 52               # Optimized score threshold for higher setup capture
+MIN_SCORE = 56.5              # Higher score threshold for conviction setups
+REQUIRE_STRONG_BUY = True     # Enforce 'STRONG BUY' / 'STRONG SELL' setups only
 
 # =========================
 # Risk Management
