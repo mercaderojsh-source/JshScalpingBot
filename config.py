@@ -28,16 +28,24 @@ MAX_OPEN_POSITIONS = 10      # Completely removes position bottlenecking
 MAX_DAILY_LOSS = 5.0         # Scaled slightly for $50 paper balance
 
 # =========================
-# Trading Pairs (Pruned to Top 6 High-Performance Trenders)
+# Trading Pairs (Expanded for High Signal Frequency)
 # =========================
 
 PAIRS = [
-    "LINKUSDT",
+    "BTCUSDT",
     "ETHUSDT",
-    "DOGEUSDT",
-    "SUIUSDT",
     "SOLUSDT",
-    "BTCUSDT"
+    "DOGEUSDT",
+    "LINKUSDT",
+    "SUIUSDT",
+    "AVAXUSDT",
+    "PEPEUSDT",
+    "NEARUSDT",
+    "XRPUSDT",
+    "APTUSDT",
+    "ADAUSDT",
+    "SHIBUSDT",
+    "BNBUSDT"
 ]
 
 # =========================
