@@ -16,7 +16,7 @@ BITGET_API_PASSPHRASE = os.getenv("BITGET_API_PASSPHRASE")
 # Trading Mode
 # =========================
 
-LIVE_TRADING = False
+LIVE_TRADING = False          # Keep False until Calibration Batch #2 is verified
 
 # =========================
 # Futures Settings
@@ -25,10 +25,10 @@ LIVE_TRADING = False
 MARGIN_MODE = "crossed"      # crossed | isolated
 LEVERAGE = 5
 MAX_OPEN_POSITIONS = 10      # Completely removes position bottlenecking
-MAX_DAILY_LOSS = 5.0         # Scaled slightly for $50 paper balance
+MAX_DAILY_LOSS = 5.0         # Scaled for $50 balance
 
 # =========================
-# Trading Pairs (Expanded for High Signal Frequency)
+# Trading Pairs (ADAUSDT & PEPEUSDT Pruned)
 # =========================
 
 PAIRS = [
@@ -39,11 +39,9 @@ PAIRS = [
     "LINKUSDT",
     "SUIUSDT",
     "AVAXUSDT",
-    "PEPEUSDT",
     "NEARUSDT",
     "XRPUSDT",
     "APTUSDT",
-    "ADAUSDT",
     "SHIBUSDT",
     "BNBUSDT"
 ]
@@ -58,7 +56,7 @@ SCAN_INTERVAL = 10           # Scan every 10 seconds for rapid 1m setups
 # Strategy Thresholds
 # =========================
 
-MIN_SCORE = 32.0              # Calibrated score threshold for 1m intelligence scale
+MIN_SCORE = 40.0              # Raised from 32.0 to filter low-conviction market chop
 REQUIRE_STRONG_BUY = True     # Enforce 'STRONG BUY' / 'STRONG SELL' setups only
 
 # =========================
@@ -67,10 +65,10 @@ REQUIRE_STRONG_BUY = True     # Enforce 'STRONG BUY' / 'STRONG SELL' setups only
 
 RISK_PER_TRADE = 2.0         # % of account balance ($1.00 per trade on $50 balance)
 ATR_STOP_MULTIPLIER = 1.8    # Expanded stop distance to survive noise
-TAKE_PROFIT_RR = 1.5         # Realistic 1 : 1.5 Risk/Reward for 1m scalping
+TAKE_PROFIT_RR = 1.2         # Lowered from 1.5 for faster, higher-probability scalp exits
 
 # =========================
 # Paper Trading
 # =========================
 
-START_BALANCE = 50.00        # Updated start balance
+START_BALANCE = 50.00        # Reset starting paper balance
