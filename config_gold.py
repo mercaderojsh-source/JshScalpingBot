@@ -9,9 +9,10 @@ MAX_OPEN_POSITIONS = 1       # Focus on 1 Gold trade at a time
 POSITION_SIZE_PERCENT = 0.80 # Margin allocation per trade
 
 # Market Watchlist (Commodity Perpetual)
-WATCHLIST = [
+PAIRS = [
     "XAUUSDT"
 ]
+WATCHLIST = PAIRS             # Alias so both variable names work
 
 # Indicator & Strategy Tuning
 TIMEFRAME = "5m"
