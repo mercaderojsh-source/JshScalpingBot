@@ -25,7 +25,7 @@ LIVE_TRADING = False          # Keep False until Calibration Batch #3 is verifie
 MARGIN_MODE = "crossed"      # crossed | isolated
 LEVERAGE = 5
 MAX_OPEN_POSITIONS = 10      # Prevents position bottlenecking
-MAX_DAILY_LOSS = 5.0         # Scaled for $50 paper balance
+MAX_DAILY_LOSS = 45.0         # Scaled for $50 paper balance
 
 # ==========================================
 # Trading Pairs (Pruned to 7 High-Liquidity Pairs)
