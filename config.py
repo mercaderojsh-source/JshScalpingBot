@@ -25,7 +25,7 @@ LIVE_TRADING = False          # Keep False until Calibration Batch #3 is verifie
 MARGIN_MODE = "crossed"      # crossed | isolated
 LEVERAGE = 5
 MAX_OPEN_POSITIONS = 10      # Prevents position bottlenecking
-MAX_DAILY_LOSS = 45.0         # Scaled for $50 paper balance
+MAX_DAILY_LOSS = 20.0        # Relaxed cap for paper calibration data collection
 
 # ==========================================
 # Trading Pairs (Pruned to 7 High-Liquidity Pairs)
@@ -49,11 +49,11 @@ PAIRS = [
 SCAN_INTERVAL = 10           # Scan every 10 seconds for rapid setups
 
 # ==========================================
-# Strategy Thresholds
+# Strategy Thresholds (Calibration Batch #3 - Option A)
 # ==========================================
 
-MIN_SCORE = 60.0              # Raised from 40.0 to strictly target high-conviction momentum
-REQUIRE_STRONG_BUY = True     # Enforce 'STRONG BUY' / 'STRONG SELL' setups only
+MIN_SCORE = 50.0              # Lowered to 50.0 for accelerated data collection
+REQUIRE_STRONG_BUY = False    # Allow standard BUY/SELL entries to increase trade velocity
 
 # ==========================================
 # Risk Management
