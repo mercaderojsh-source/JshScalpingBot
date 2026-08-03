@@ -1,7 +1,7 @@
 import os
 
 # ==========================================
-# JshScalpingBot Configuration
+# JshScalpingBot Configuration (Live - $11.26 Capital)
 # ==========================================
 
 # ==========================================
@@ -16,20 +16,19 @@ BITGET_API_PASSPHRASE = os.getenv("BITGET_API_PASSPHRASE")
 # Trading Mode
 # ==========================================
 
-LIVE_TRADING = False          # Keep False until Calibration Batch #3 is verified
+LIVE_TRADING = True           # Enable Live Trading on Bitget
 
 # ==========================================
 # Futures Settings
 # ==========================================
 
-MARGIN_MODE = "crossed"      # crossed | isolated
+MARGIN_MODE = "crossed"       # crossed | isolated
 LEVERAGE = 5
-MAX_OPEN_POSITIONS = 10      # Prevents position bottlenecking
-MAX_DAILY_LOSS = 20.0        # Relaxed cap for paper calibration data collection
+MAX_OPEN_POSITIONS = 1        # Max 1 open position at a time for $11.26 account
+MAX_DAILY_LOSS = 1.12         # Strict 10% daily risk cap ($1.12 max daily drawdown)
 
 # ==========================================
-# Trading Pairs (Pruned to 7 High-Liquidity Pairs)
-# Removed SHIBUSDT (sub-cent decimal bug) & low performers
+# Trading Pairs (Pruned High-Liquidity Pairs)
 # ==========================================
 
 PAIRS = [
@@ -49,22 +48,23 @@ PAIRS = [
 SCAN_INTERVAL = 10           # Scan every 10 seconds for rapid setups
 
 # ==========================================
-# Strategy Thresholds (Calibration Batch #3 - Option A)
+# Strategy Thresholds (Optimized Production Rules)
 # ==========================================
 
-MIN_SCORE = 50.0              # Lowered to 50.0 for accelerated data collection
-REQUIRE_STRONG_BUY = False    # Allow standard BUY/SELL entries to increase trade velocity
+MIN_SCORE = 62.0              # Strict entry threshold targeting high-conviction setups
+REQUIRE_STRONG_BUY = True     # Enforce 'STRONG BUY' / 'STRONG SELL' setups only
+MIN_TREND_SCORE = 8           # Rejects setups in range chop (Trend Score < 8)
 
 # ==========================================
 # Risk Management
 # ==========================================
 
-RISK_PER_TRADE = 2.0         # % of account balance ($1.00 risk per trade on $50 balance)
-ATR_STOP_MULTIPLIER = 1.8    # Expanded stop distance to absorb noise
-TAKE_PROFIT_RR = 1.2         # Target RR for fast, high-probability scalp exits
+RISK_PER_TRADE = 2.0         # 2% risk per trade (~$0.22 per trade on $11.26 balance)
+ATR_STOP_MULTIPLIER = 1.2    # Tight stop loss distance
+TAKE_PROFIT_RR = 1.8         # Target 1:1.8 Risk-to-Reward ratio
 
 # ==========================================
-# Paper Trading State
+# Account State Baseline
 # ==========================================
 
-START_BALANCE = 50.00        # Reset starting paper balance for Batch #3
+START_BALANCE = 11.26        # Exact Bitget live balance
