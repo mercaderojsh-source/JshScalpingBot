@@ -9,6 +9,8 @@ from config import (
     LIVE_TRADING,
     MIN_SCORE,
     REQUIRE_STRONG_BUY,
+    MIN_TREND_SCORE,
+    MAX_OPEN_POSITIONS,
 )
 
 from intelligence.momentum import momentum_score
@@ -80,7 +82,8 @@ if os.path.exists(journal.filename):
     print("=============================\n")
 
 # Single startup alert sent on container launch
-send_message("🤖 JshScalpingBot Started")
+mode_label = "LIVE TRADING" if LIVE_TRADING else "PAPER TRADING"
+send_message(f"🤖 JshScalpingBot Started [{mode_label}]")
 
 while True:
     try:
@@ -94,136 +97,140 @@ while True:
         # Scan all pairs
         # -----------------------------
         for pair in PAIRS:
+            try:
+                response = get_candles(pair)
 
-            response = get_candles(pair)
+                if not response or response.get("code") != "00000":
+                    continue
 
-            if not response or response.get("code") != "00000":
+                candles = response.get("data", [])
+                if len(candles) < 50:
+                    continue
+
+                closes = [float(c[4]) for c in candles]
+                highs = [float(c[2]) for c in candles]
+                lows = [float(c[3]) for c in candles]
+
+                price = closes[-1]
+
+                ema9 = calculate_ema(closes, 9)
+                ema21 = calculate_ema(closes, 21)
+                ema50 = calculate_ema(closes, 50)
+
+                atr = calculate_atr(highs, lows, closes)
+                rsi = calculate_rsi(closes)
+
+                signal = generate_signal(
+                    ema9,
+                    ema21,
+                    ema50,
+                    atr,
+                    rsi,
+                    price
+                )
+
+                setup = detect_setup(
+                    ema9,
+                    ema21,
+                    ema50,
+                    rsi,
+                    price
+                )
+
+                confidence = confidence_score(
+                    ema9,
+                    ema21,
+                    ema50,
+                    rsi,
+                    atr
+                )
+
+                trend = trend_strength(
+                    ema9,
+                    ema21,
+                    ema50,
+                    price
+                )
+
+                print(
+                    f"{pair} | EMA Gap %: "
+                    f"{((abs(ema9-ema21)+abs(ema21-ema50))/price)*100:.4f}% "
+                    f"| Trend Score: {trend}"
+                )
+
+                state = market_state(
+                    ema9,
+                    ema21,
+                    ema50,
+                    atr,
+                    rsi
+                )
+
+                htf = higher_timeframe_trend(pair)
+
+                vol = volatility_score(
+                    atr,
+                    price
+                )
+
+                atr_percent = (atr / price) * 100
+
+                momentum = momentum_score(
+                    trend,
+                    atr_percent,
+                    ema9,
+                    ema21,
+                    ema50,
+                    price
+                )
+
+                previous_momentum, momentum_change = remember(pair, momentum)
+
+                print(
+                     f"{pair} | "
+                     f"Trend={trend}/20 | "
+                     f"ATR={atr_percent:.2f}% | "
+                     f"Momentum={momentum} | "
+                     f"ΔMomentum={momentum_change:+.1f}"
+                )
+
+                quality = quality_score(
+                    confidence,
+                    setup,
+                    htf["trend"]
+                )
+
+                score = opportunity_score(
+                    momentum,
+                    quality,
+                    vol
+                )
+
+                results.append({
+                    "pair": pair,
+                    "price": price,
+                    "atr": atr,
+                    "atr_percent": atr_percent,
+                    "rsi": rsi,
+                    "signal": signal,
+                    "setup": setup,
+                    "confidence": confidence,
+                    "trend_strength": trend,
+                    "volatility_score": vol,
+                    "market_state": state,
+                    "higher_timeframe": htf["trend"],
+                    "momentum": momentum,
+                    "quality": quality,
+                    "opportunity": score,
+                    "score": score
+                })
+
+                results[-1]["brain_score"] = intelligence_score(results[-1])
+                results[-1]["score"] = results[-1]["brain_score"]
+
+            except Exception as pair_err:
+                print(f"⚠️ Error scanning pair {pair}: {pair_err}")
                 continue
-
-            candles = response.get("data", [])
-            if len(candles) < 50:
-                continue
-
-            closes = [float(c[4]) for c in candles]
-            highs = [float(c[2]) for c in candles]
-            lows = [float(c[3]) for c in candles]
-
-            price = closes[-1]
-
-            ema9 = calculate_ema(closes, 9)
-            ema21 = calculate_ema(closes, 21)
-            ema50 = calculate_ema(closes, 50)
-
-            atr = calculate_atr(highs, lows, closes)
-            rsi = calculate_rsi(closes)
-
-            signal = generate_signal(
-                ema9,
-                ema21,
-                ema50,
-                atr,
-                rsi,
-                price
-            )
-
-            setup = detect_setup(
-                ema9,
-                ema21,
-                ema50,
-                rsi,
-                price
-            )
-
-            confidence = confidence_score(
-                ema9,
-                ema21,
-                ema50,
-                rsi,
-                atr
-            )
-
-            trend = trend_strength(
-                ema9,
-                ema21,
-                ema50,
-                price
-            )
-
-            print(
-                f"{pair} | EMA Gap %: "
-                f"{((abs(ema9-ema21)+abs(ema21-ema50))/price)*100:.4f}% "
-                f"| Trend Score: {trend}"
-            )
-
-            state = market_state(
-                ema9,
-                ema21,
-                ema50,
-                atr,
-                rsi
-            )
-
-            htf = higher_timeframe_trend(pair)
-
-            vol = volatility_score(
-                atr,
-                price
-            )
-
-            atr_percent = (atr / price) * 100
-
-            momentum = momentum_score(
-                trend,
-                atr_percent,
-                ema9,
-                ema21,
-                ema50,
-                price
-            )
-
-            previous_momentum, momentum_change = remember(pair, momentum)
-
-            print(
-                 f"{pair} | "
-                 f"Trend={trend}/20 | "
-                 f"ATR={atr_percent:.2f}% | "
-                 f"Momentum={momentum} | "
-                 f"ΔMomentum={momentum_change:+.1f}"
-            )
-
-            quality = quality_score(
-                confidence,
-                setup,
-                htf["trend"]
-            )
-
-            score = opportunity_score(
-                momentum,
-                quality,
-                vol
-            )
-
-            results.append({
-                "pair": pair,
-                "price": price,
-                "atr": atr,
-                "atr_percent": atr_percent,
-                "rsi": rsi,
-                "signal": signal,
-                "setup": setup,
-                "confidence": confidence,
-                "trend_strength": trend,
-                "volatility_score": vol,
-                "market_state": state,
-                "higher_timeframe": htf["trend"],
-                "momentum": momentum,
-                "quality": quality,
-                "opportunity": score,
-                "score": score
-            })
-
-            results[-1]["brain_score"] = intelligence_score(results[-1])
-            results[-1]["score"] = results[-1]["brain_score"]
 
         if not results:
             print("⚠️ No market data received.")
@@ -237,7 +244,7 @@ while True:
         )
 
         # -----------------------------
-        # Check active trade
+        # Check active trade (Paper Trading Mode)
         # -----------------------------
         if (
             not LIVE_TRADING
@@ -349,10 +356,19 @@ while True:
         # -----------------------------
         # Open new trade
         # -----------------------------
-        if (
-            (not LIVE_TRADING and trader.position is None)
-            or LIVE_TRADING
-        ):
+        # Capacity check for live & paper trading
+        can_open_trade = False
+
+        if not LIVE_TRADING:
+            can_open_trade = (trader.position is None)
+        else:
+            live_positions = trader.get_open_positions()
+            if len(live_positions) < MAX_OPEN_POSITIONS:
+                can_open_trade = True
+            else:
+                print(f"📌 Max live open positions reached ({len(live_positions)}/{MAX_OPEN_POSITIONS}). Skipping entry scan.")
+
+        if can_open_trade:
 
             trade_found = False
 
@@ -388,6 +404,13 @@ while True:
                     continue
 
                 # ----------------------------------------------------
+                # TREND STRENGTH FILTER: Minimum Trend Score
+                # ----------------------------------------------------
+                if best["trend_strength"] < MIN_TREND_SCORE:
+                    print(f"🚫 Skipped {best['pair']}: Trend Score ({best['trend_strength']}) < Minimum ({MIN_TREND_SCORE})")
+                    continue
+
+                # ----------------------------------------------------
                 # HARD FILTER: Never trade against Higher Timeframe
                 # ----------------------------------------------------
                 htf_trend = str(best["higher_timeframe"]).upper()
@@ -405,6 +428,7 @@ while True:
                 print(f"State       : {best['market_state']}")
                 print(f"HTF         : {best['higher_timeframe']}")
                 print(f"Setup       : {best['setup']}")
+                print(f"Trend Score : {best['trend_strength']}")
                 print(f"Momentum    : {best['momentum']}")
                 print(f"Quality     : {best['quality']}")
                 print(f"Brain Score : {best['brain_score']:.1f}")
@@ -514,6 +538,12 @@ while True:
 
             if positions:
                 print(f"Open Positions : {len(positions)}")
+                for pos in positions:
+                    symbol = pos.get("symbol", pos.get("pair", "UNKNOWN"))
+                    side = pos.get("side", pos.get("direction", "UNKNOWN"))
+                    size = pos.get("total", pos.get("size", 0.0))
+                    pnl = pos.get("unrealizedPnL", 0.0)
+                    print(f"  • {symbol} | Side: {side} | Size: {size} | Unrealized PnL: ${float(pnl):+.2f}")
             else:
                 print("No Active Positions")
 
