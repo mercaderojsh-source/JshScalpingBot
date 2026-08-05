@@ -28,7 +28,7 @@ MAX_OPEN_POSITIONS = 1        # Max 1 open position at a time for $11.26 account
 MAX_DAILY_LOSS = 1.12         # Strict 10% daily risk cap ($1.12 max daily drawdown)
 
 # ==========================================
-# Trading Pairs (Pruned High-Liquidity Pairs)
+# Trading Pairs (High-Liquidity Scalping Pairs)
 # ==========================================
 
 PAIRS = [
@@ -38,30 +38,34 @@ PAIRS = [
     "NEARUSDT",
     "SUIUSDT",
     "APTUSDT",
-    "XRPUSDT"
+    "XRPUSDT",
+    "LINKUSDT",
+    "AVAXUSDT",
+    "DOGEUSDT"
 ]
 
 # ==========================================
-# Scanner Settings
+# Scanner Settings (1m High-Frequency)
 # ==========================================
 
-SCAN_INTERVAL = 10           # Scan every 10 seconds for rapid setups
+TIMEFRAME = "1m"              # 1-minute candle timeframe for rapid scalping
+SCAN_INTERVAL = 1             # Near-instant 1-second scan loop
 
 # ==========================================
-# Strategy Thresholds (Optimized Production Rules)
+# Strategy Thresholds (1m Calibrated Rules)
 # ==========================================
 
-MIN_SCORE = 62.0              # Strict entry threshold targeting high-conviction setups
-REQUIRE_STRONG_BUY = True     # Enforce 'STRONG BUY' / 'STRONG SELL' setups only
-MIN_TREND_SCORE = 8           # Rejects setups in range chop (Trend Score < 8)
+MIN_SCORE = 55.0              # Lowered to capture fast 1m momentum shifts
+REQUIRE_STRONG_BUY = False   # Set to False to allow standard BUY/SELL setups
+MIN_TREND_SCORE = 6           # Responsive trend threshold for 1m charts
 
 # ==========================================
-# Risk Management
+# Risk Management (Fee-Aware Parameters)
 # ==========================================
 
 RISK_PER_TRADE = 2.0         # 2% risk per trade (~$0.22 per trade on $11.26 balance)
-ATR_STOP_MULTIPLIER = 1.2    # Tight stop loss distance
-TAKE_PROFIT_RR = 1.8         # Target 1:1.8 Risk-to-Reward ratio
+ATR_STOP_MULTIPLIER = 1.0    # Tight stop distance for 1m candles
+TAKE_PROFIT_RR = 1.6         # Target 1:1.6 Risk-to-Reward ratio (covers taker fees)
 
 # ==========================================
 # Account State Baseline
