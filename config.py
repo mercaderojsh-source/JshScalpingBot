@@ -1,75 +1,38 @@
 import os
 
 # ==========================================
-# JshScalpingBot Configuration (Dynamic Live Capital)
+# JshScalpingBot Configuration (Gold Only Mode)
 # ==========================================
 
-# ==========================================
 # Bitget API Credentials
-# ==========================================
-
 BITGET_API_KEY = os.getenv("BITGET_API_KEY")
 BITGET_API_SECRET = os.getenv("BITGET_API_SECRET")
 BITGET_API_PASSPHRASE = os.getenv("BITGET_API_PASSPHRASE")
 
-# ==========================================
-# Trading Mode
-# ==========================================
-
+# Trading Mode & Balance
 LIVE_TRADING = True           # Enable Live Trading on Bitget
+START_BALANCE = 100.0        # Fallback for paper mode
 
-# ==========================================
-# Account Baseline (Paper Trader Fallback Only)
-# ==========================================
-
-START_BALANCE = 100.0        # Default fallback for paper mode; Live trading fetches live API balance
-
-# ==========================================
-# Futures Settings
-# ==========================================
-
+# Futures Settings (Calibrated for XAUUSDT)
 MARGIN_MODE = "crossed"       # crossed | isolated
-LEVERAGE = 5
-MAX_OPEN_POSITIONS = 1        # Max 1 open position at a time
-MAX_DAILY_LOSS_PCT = 10.0     # Dynamic 10% daily drawdown cap
+LEVERAGE = 10                # 10x Leverage for larger order sizing
+MAX_OPEN_POSITIONS = 1        # Focus on 1 active trade
+MAX_DAILY_LOSS_PCT = 15.0     # 15% daily drawdown cap buffer
 
-# ==========================================
-# Trading Pairs
-# ==========================================
+# Market Focus (Locked exclusively to Gold)
+PAIRS = ["XAUUSDT"]
 
-PAIRS = [
-    "BTCUSDT",
-    "ETHUSDT",
-    "SOLUSDT",
-    "NEARUSDT",
-    "SUIUSDT",
-    "APTUSDT",
-    "XRPUSDT",
-    "LINKUSDT",
-    "AVAXUSDT",
-    "DOGEUSDT"
-]
-
-# ==========================================
 # Scanner Settings (1m High-Frequency)
-# ==========================================
-
-TIMEFRAME = "1m"              # 1-minute candle timeframe for rapid scalping
+TIMEFRAME = "1m"              # 1-minute candle timeframe
 SCAN_INTERVAL = 1             # 1-second scan loop
 
-# ==========================================
-# Strategy Thresholds (Active Execution Rules)
-# ==========================================
+# Strategy & Signal Filters (Enables BOTH Long & Short setups)
+MIN_SCORE = 40.0              # Entry threshold for 1m setups
+REQUIRE_STRONG_BUY = False   # Allows standard BUY (Long) and SELL (Short) entries
+MIN_TREND_SCORE = 4           # Responsive trend threshold
+ENABLE_RANGE_MODE = True      # Range Buy (Long support) & Range Sell (Short resistance)
 
-MIN_SCORE = 40.0              # Active entry threshold for 1m setups
-REQUIRE_STRONG_BUY = False   # Allow standard BUY/SELL entries
-MIN_TREND_SCORE = 4           # Responsive trend threshold for 1m charts
-ENABLE_RANGE_MODE = True      # Enable Range Scalping (Bollinger Band bounces)
-
-# ==========================================
-# Risk Management (Dynamic Percentage Scaling)
-# ==========================================
-
-RISK_PER_TRADE = 2.0         # 2% of dynamic live Bitget balance per trade
-ATR_STOP_MULTIPLIER = 1.5    # Expanded stop distance (1.5x ATR)
-TAKE_PROFIT_RR = 2.0         # 1:2.0 Risk-to-Reward ratio (beats exchange fees)
+# Risk & Position Sizing
+RISK_PER_TRADE = 5.0         # 5% risk allocation per trade
+ATR_STOP_MULTIPLIER = 1.5    # 1.5x ATR stop distance
+TAKE_PROFIT_RR = 2.0         # 1:2.0 Risk-to-Reward ratio
