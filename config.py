@@ -19,13 +19,19 @@ BITGET_API_PASSPHRASE = os.getenv("BITGET_API_PASSPHRASE")
 LIVE_TRADING = True           # Enable Live Trading on Bitget
 
 # ==========================================
+# Account Baseline (Paper Trader Fallback Only)
+# ==========================================
+
+START_BALANCE = 100.0        # Default fallback for paper mode; Live trading fetches live API balance
+
+# ==========================================
 # Futures Settings
 # ==========================================
 
 MARGIN_MODE = "crossed"       # crossed | isolated
 LEVERAGE = 5
 MAX_OPEN_POSITIONS = 1        # Max 1 open position at a time
-MAX_DAILY_LOSS_PCT = 10.0     # Dynamic 10% daily drawdown cap based on live balance
+MAX_DAILY_LOSS_PCT = 10.0     # Dynamic 10% daily drawdown cap
 
 # ==========================================
 # Trading Pairs
