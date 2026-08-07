@@ -5,12 +5,12 @@
 # 1. Inherit default configuration settings
 from config import *
 
-# 2. Account & Risk Overrides (Dynamic Live Capital)
+# 2. Account & Risk Overrides (Aggressive Sizing for Larger Gold Yields)
 START_BALANCE = 100.0        # Paper mode fallback
-LEVERAGE = 5                 # 5x Leverage
+LEVERAGE = 10                # Boosted to 10x leverage (allows 0.02+ XAU position sizes)
 MAX_OPEN_POSITIONS = 1       # Focus on 1 Gold trade at a time
-MAX_DAILY_LOSS_PCT = 10.0    # Dynamic 10% daily drawdown cap
-RISK_PER_TRADE = 2.0        # 2% risk of dynamic live balance per trade
+MAX_DAILY_LOSS_PCT = 15.0    # Expanded 15% daily drawdown buffer for larger position sizing
+RISK_PER_TRADE = 5.0         # 5% risk per trade to maximize lot size allocation
 
 # 3. Market Watchlist Override
 PAIRS = ["XAUUSDT"]
