@@ -21,21 +21,28 @@ WATCHLIST = ["XAUUSDT"]
 TIMEFRAME = "1m"             # 1-minute candle timeframe for rapid scalping
 SCAN_INTERVAL = 1            # Near-instant 1-second scan loop
 
-# 5. Strategy & Indicator Tuning (1m High-Frequency Rules)
-MIN_SCORE = 55.0             # Lowered to capture fast 1m momentum shifts
-REQUIRE_STRONG_BUY = False   # Allow standard BUY/SELL signals on 1m
-MIN_TREND_SCORE = 6          # Responsive trend threshold for 1m charts
+# 5. Strategy Thresholds (Active Execution & Range Scalping Rules)
+MIN_SCORE = 40.0             # Lowered to 40.0 to trigger 1m Gold trades actively
+REQUIRE_STRONG_BUY = False   # Allow standard BUY/SELL entries on 1m
+MIN_TREND_SCORE = 4          # Responsive trend threshold for 1m Gold charts
+ENABLE_RANGE_MODE = True     # Enable Range Scalping (Bollinger Band bounces)
 
 # Risk/Reward Setup (Fee-Aware Parameters)
 ATR_STOP_MULTIPLIER = 1.0   # Tight stop loss distance
-TAKE_PROFIT_RR = 1.6        # Target 1:1.6 Risk-to-Reward ratio (covers taker fees)
+TAKE_PROFIT_RR = 1.6        # Target 1:1.6 Risk-to-Reward ratio
 
-# Fast Indicators for 1m Charts
+# Fast Indicators for 1m Gold Charts
 EMA_FAST = 5
 EMA_SLOW = 13
 RSI_PERIOD = 9
 RSI_OVERBOUGHT = 75
 RSI_OVERSOLD = 25
+
+# Range Scalper Thresholds
+BB_PERIOD = 20
+BB_STD_DEV = 2.0
+RSI_RANGE_OVERSOLD = 35
+RSI_RANGE_OVERBOUGHT = 65
 
 # 6. Isolated Output Files
 LOG_FILE = "trade_history_gold_1m.csv"
