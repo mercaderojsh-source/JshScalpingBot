@@ -101,11 +101,14 @@ class LiveTrader:
         pair,
         direction,
         entry_price,
-        atr
+        atr,
+        context=None,
+        **kwargs
     ):
         """
         Executes a complete live trade using the same
-        interface as PaperTrader.
+        interface as PaperTrader. Accepts optional context
+        and keyword args to maintain interface compatibility.
         """
 
         print("\n========== EXECUTE LIVE TRADE ==========")
@@ -251,5 +254,6 @@ class LiveTrader:
             "atr": atr,
             "stop_loss": stop_loss,
             "take_profit": take_profit,
-            "size": size
+            "size": size,
+            "context": context or {}
         }
