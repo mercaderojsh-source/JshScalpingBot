@@ -1,8 +1,10 @@
 import os
 import time
 import traceback
+from datetime import datetime, timezone
 from trading.performance import performance_summary, log_trade_result
 
+import config
 from config import (
     PAIRS,
     SCAN_INTERVAL,
@@ -41,6 +43,29 @@ from trading.live_trader import LiveTrader
 from trading.trade_journal import TradeJournal
 
 from telegram.telegram_bot import send_message
+
+# Dynamic Feature Toggles
+ENABLE_SESSION_FILTER = getattr(config, "ENABLE_SESSION_FILTER", False)
+ENABLE_PYRAMIDING = getattr(config, "ENABLE_PYRAMIDING", False)
+PYRAMID_PROFIT_ATR = getattr(config, "PYRAMID_PROFIT_ATR", 1.0)
+
+
+def is_liquidity_window_active():
+    """Returns True if current UTC time falls within peak liquidity trading hours."""
+    now_utc = datetime.now(timezone.utc).time()
+
+    # Session 1: London Open (07:00 - 10:00 UTC)
+    london_start = datetime.strptime("07:00", "%H:%M").time()
+    london_end = datetime.strptime("10:00", "%H:%M").time()
+
+    # Session 2: London / New York Overlap (13:00 - 17:00 UTC)
+    ny_start = datetime.strptime("13:00", "%H:%M").time()
+    ny_end = datetime.strptime("17:00", "%H:%M").time()
+
+    is_london = (london_start <= now_utc <= london_end)
+    is_ny_overlap = (ny_start <= now_utc <= ny_end)
+
+    return is_london or is_ny_overlap
 
 
 if LIVE_TRADING:
@@ -82,7 +107,7 @@ while True:
         # If a trade was active but is no longer open in Bitget, it closed (TP/SL hit)
         if active_tracked_trade and not current_positions:
             print("\n🏁 DETECTED CLOSED TRADE! Processing stats and alert...")
-            
+
             pair = active_tracked_trade["pair"]
             entry = active_tracked_trade["entry"]
             direction = active_tracked_trade["direction"]
@@ -132,7 +157,15 @@ while True:
             active_tracked_trade = None
 
         # ----------------------------------------------------
-        # 2. MARKET SCANNING
+        # 2. SESSION LIQUIDITY CHECK
+        # ----------------------------------------------------
+        if ENABLE_SESSION_FILTER and not is_liquidity_window_active():
+            print("💤 Outside peak liquidity window (London 07:00-10:00 UTC / NY 13:00-17:00 UTC). Skipping entries.")
+            time.sleep(SCAN_INTERVAL)
+            continue
+
+        # ----------------------------------------------------
+        # 3. MARKET SCANNING
         # ----------------------------------------------------
         results = []
 
@@ -220,17 +253,34 @@ while True:
         ranked = sorted(results, key=lambda x: x["score"], reverse=True)
 
         # ----------------------------------------------------
-        # 3. ENTRY EXECUTION
+        # 4. ENTRY EXECUTION & PYRAMIDING CHECK
         # ----------------------------------------------------
         can_open_trade = False
 
         if not LIVE_TRADING:
             can_open_trade = (trader.position is None)
         else:
-            if len(current_positions) < MAX_OPEN_POSITIONS:
+            num_positions = len(current_positions)
+
+            if num_positions == 0:
                 can_open_trade = True
+            elif num_positions == 1 and ENABLE_PYRAMIDING:
+                pos = current_positions[0]
+                entry_p = float(pos.get("openPriceAvg", 0))
+                mark_p = float(pos.get("markPrice", entry_p))
+                hold_side = str(pos.get("holdSide", "")).upper()
+
+                # Calculate current profit in price distance
+                price_gain = (mark_p - entry_p) if hold_side in ["LONG", "BUY"] else (entry_p - mark_p)
+                min_required_gain = ranked[0]["atr"] * PYRAMID_PROFIT_ATR
+
+                if price_gain >= min_required_gain:
+                    print(f"🔥 Pyramiding Triggered! Position 1 gain (+{price_gain:.2f}) >= required (+{min_required_gain:.2f}). Scanning for follow-up entry...")
+                    can_open_trade = True
+                else:
+                    print(f"📌 Position 1 active (+{price_gain:.2f}). Waiting for +{min_required_gain:.2f} gain before pyramiding.")
             else:
-                print(f"📌 Max live open positions reached ({len(current_positions)}/{MAX_OPEN_POSITIONS}). Skipping entry scan.")
+                print(f"📌 Max positions reached ({num_positions}/{MAX_OPEN_POSITIONS}). Skipping entry scan.")
 
         if can_open_trade:
 
