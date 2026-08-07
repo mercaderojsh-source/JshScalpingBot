@@ -30,8 +30,8 @@ MIN_TREND_SCORE = 4
 ENABLE_RANGE_MODE = True
 
 # Risk/Reward Setup
-ATR_STOP_MULTIPLIER = 1.2    # 1.2x ATR stop
-TAKE_PROFIT_RR = 2.5         # 1:2.5 R:R sweet spot
+ATR_STOP_MULTIPLIER = 1.5    # Updated: 1.5x ATR stop for cleaner volatility clearance
+TAKE_PROFIT_RR = 3.0         # Updated: 1:3.0 R:R to force +$15.00+ price moves and beat exchange fees
 
 # Session Liquidity Guard
 ENABLE_SESSION_FILTER = True
