@@ -1,54 +1,81 @@
+import os
 import csv
+from datetime import datetime
+
+try:
+    from config import LOG_FILE
+except ImportError:
+    LOG_FILE = "trade_history.csv"
 
 
-def performance_summary(filename="trade_history.csv"):
-
-    trades = []
+def log_trade_result(pair, direction, entry, exit_price, win, pnl=0.0):
+    """
+    Logs a completed trade result to the configured CSV file.
+    """
+    file_exists = os.path.isfile(LOG_FILE)
+    fieldnames = ["timestamp", "pair", "direction", "entry", "exit", "result", "pnl"]
+    result_str = "WIN" if win else "LOSS"
 
     try:
-        with open(filename, "r") as file:
+        with open(LOG_FILE, mode="a", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
+            if not file_exists:
+                writer.writeheader()
+            writer.writerow({
+                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "pair": pair,
+                "direction": direction,
+                "entry": entry,
+                "exit": exit_price,
+                "result": result_str,
+                "pnl": round(pnl, 4)
+            })
+    except Exception as e:
+        print(f"⚠️ Error logging trade result: {e}")
 
-            reader = csv.DictReader(file)
 
-            for row in reader:
-                trades.append(row)
-
-    except FileNotFoundError:
-
+def performance_summary():
+    """
+    Reads performance logs and calculates overall metrics.
+    """
+    if not os.path.isfile(LOG_FILE):
         return {
             "trades": 0,
             "wins": 0,
             "losses": 0,
-            "win_rate": 0,
-            "net_profit": 0
+            "win_rate": 0.0,
+            "net_profit": 0.0
         }
 
-    total = len(trades)
-
+    trades = 0
     wins = 0
     losses = 0
-    profit = 0
+    net_profit = 0.0
 
-    for trade in trades:
+    try:
+        with open(LOG_FILE, mode="r") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                trades += 1
+                res = str(row.get("result", "")).upper()
+                if "WIN" in res:
+                    wins += 1
+                elif "LOSS" in res:
+                    losses += 1
 
-        pnl = float(trade["PnL"])
+                try:
+                    net_profit += float(row.get("pnl", 0.0))
+                except (ValueError, TypeError):
+                    pass
+    except Exception as e:
+        print(f"⚠️ Error reading performance log: {e}")
 
-        profit += pnl
-
-        if pnl > 0:
-            wins += 1
-        else:
-            losses += 1
-
-    win_rate = 0
-
-    if total > 0:
-        win_rate = round(wins / total * 100, 2)
+    win_rate = round((wins / trades * 100), 1) if trades > 0 else 0.0
 
     return {
-        "trades": total,
+        "trades": trades,
         "wins": wins,
         "losses": losses,
         "win_rate": win_rate,
-        "net_profit": round(profit, 2)
+        "net_profit": round(net_profit, 2)
     }
