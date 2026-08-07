@@ -11,7 +11,7 @@ print("\n==========================================")
 print("🏆 Starting JshScalpingBot - Gold (XAUUSDT) [1m Rapid Scalper]")
 print("==========================================\n")
 
-# 3. Import primary bot main module (Executes scan loop with Gold overrides active)
+# 3. Import primary bot main module (executes scan loop with Gold overrides active)
 import main
 
 if __name__ == "__main__":
