@@ -6,6 +6,7 @@
 from config import *
 
 # 2. Account & Risk Overrides (Dynamic Live Capital)
+START_BALANCE = 100.0        # Paper mode fallback
 LEVERAGE = 5                 # 5x Leverage
 MAX_OPEN_POSITIONS = 1       # Focus on 1 Gold trade at a time
 MAX_DAILY_LOSS_PCT = 10.0    # Dynamic 10% daily drawdown cap
