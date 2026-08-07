@@ -19,6 +19,15 @@ from trading.position_sizer import calculate_position_size
 from trading.risk_manager import calculate_levels
 
 
+def format_precision(value, precision_places):
+    """Formats float value according to Bitget symbol decimal place rule."""
+    try:
+        places = int(precision_places)
+        return float(f"{value:.{places}f}")
+    except Exception:
+        return round(float(value), 4)
+
+
 class LiveTrader:
 
     def __init__(self):
@@ -106,9 +115,8 @@ class LiveTrader:
         **kwargs
     ):
         """
-        Executes a complete live trade using the same
-        interface as PaperTrader. Accepts optional context
-        and keyword args to maintain interface compatibility.
+        Executes a complete live trade with exact Bitget price precision formatting
+        and immediate SL/TP order attachment.
         """
 
         print("\n========== EXECUTE LIVE TRADE ==========")
@@ -125,8 +133,8 @@ class LiveTrader:
             direction=direction
         )
 
-        stop_loss = levels["stop_loss"]
-        take_profit = levels["take_profit"]
+        raw_stop_loss = levels["stop_loss"]
+        raw_take_profit = levels["take_profit"]
 
         balance = self.get_balance()
 
@@ -138,6 +146,10 @@ class LiveTrader:
         if rules is None:
             print("❌ Failed to fetch symbol rules.")
             return False
+
+        price_precision = rules.get("pricePlace", 4)
+        stop_loss = format_precision(raw_stop_loss, price_precision)
+        take_profit = format_precision(raw_take_profit, price_precision)
 
         size = calculate_position_size(
             balance=balance,
@@ -163,8 +175,8 @@ class LiveTrader:
         print(f"\n📈 Opening {direction} {pair}")
         print(f"Entry : {entry_price}")
         print(f"Size  : {size}")
-        print(f"SL    : {stop_loss}")
-        print(f"TP    : {take_profit}")
+        print(f"SL    : {stop_loss} (Precision: {price_precision})")
+        print(f"TP    : {take_profit} (Precision: {price_precision})")
 
         # --------------------------------------------------
         # Set Leverage
@@ -202,8 +214,8 @@ class LiveTrader:
             print("❌ Failed to place market order.")
             return False
 
-        print("⏳ Waiting 3 seconds for Bitget to register the position...")
-        time.sleep(3)
+        # Brief 0.5s pause to ensure exchange state syncs before attaching SL/TP
+        time.sleep(0.5)
 
         # --------------------------------------------------
         # Attach Stop Loss
@@ -221,9 +233,9 @@ class LiveTrader:
         print(response)
 
         if response.get("code") == "00000":
-            print("✅ Stop Loss attached.")
+            print("✅ Stop Loss attached successfully.")
         else:
-            print("❌ Stop Loss attachment failed.")
+            print(f"❌ Stop Loss attachment failed: {response.get('msg', 'Unknown Error')}")
 
         # --------------------------------------------------
         # Attach Take Profit
@@ -241,9 +253,9 @@ class LiveTrader:
         print(response)
 
         if response.get("code") == "00000":
-            print("✅ Take Profit attached.")
+            print("✅ Take Profit attached successfully.")
         else:
-            print("❌ Take Profit attachment failed.")
+            print(f"❌ Take Profit attachment failed: {response.get('msg', 'Unknown Error')}")
 
         print("✅ Live trade execution completed.")
 
