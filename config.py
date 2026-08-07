@@ -1,7 +1,7 @@
 import os
 
 # ==========================================
-# JshScalpingBot Configuration (Live - $11.26 Capital)
+# JshScalpingBot Configuration (Dynamic Live Capital)
 # ==========================================
 
 # ==========================================
@@ -24,8 +24,8 @@ LIVE_TRADING = True           # Enable Live Trading on Bitget
 
 MARGIN_MODE = "crossed"       # crossed | isolated
 LEVERAGE = 5
-MAX_OPEN_POSITIONS = 1        # Max 1 open position for $11.26 account
-MAX_DAILY_LOSS = 1.12         # Strict 10% daily drawdown cap ($1.12)
+MAX_OPEN_POSITIONS = 1        # Max 1 open position at a time
+MAX_DAILY_LOSS_PCT = 10.0     # Dynamic 10% daily drawdown cap based on live balance
 
 # ==========================================
 # Trading Pairs
@@ -55,21 +55,15 @@ SCAN_INTERVAL = 1             # 1-second scan loop
 # Strategy Thresholds (Active Execution Rules)
 # ==========================================
 
-MIN_SCORE = 40.0              # Lowered to 40.0 to trigger 1m trades actively
+MIN_SCORE = 40.0              # Active entry threshold for 1m setups
 REQUIRE_STRONG_BUY = False   # Allow standard BUY/SELL entries
 MIN_TREND_SCORE = 4           # Responsive trend threshold for 1m charts
 ENABLE_RANGE_MODE = True      # Enable Range Scalping (Bollinger Band bounces)
 
 # ==========================================
-# Risk Management
+# Risk Management (Dynamic Percentage Scaling)
 # ==========================================
 
-RISK_PER_TRADE = 2.0         # 2% risk per trade (~$0.22 per trade on $11.26 balance)
-ATR_STOP_MULTIPLIER = 1.0    # Fee-aware stop distance
-TAKE_PROFIT_RR = 1.6         # 1:1.6 Risk-to-Reward ratio
-
-# ==========================================
-# Account State Baseline
-# ==========================================
-
-START_BALANCE = 11.26        # Exact Bitget live balance
+RISK_PER_TRADE = 2.0         # 2% of dynamic live Bitget balance per trade
+ATR_STOP_MULTIPLIER = 1.5    # Expanded stop distance (1.5x ATR)
+TAKE_PROFIT_RR = 2.0         # 1:2.0 Risk-to-Reward ratio (beats exchange fees)
