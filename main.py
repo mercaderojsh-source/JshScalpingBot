@@ -21,6 +21,7 @@ from intelligence.quality import quality_score
 from intelligence.opportunity import opportunity_score
 from intelligence.memory import remember
 from intelligence.brain import intelligence_score
+from intelligence.self_learning import apply_self_learning_adjustment
 
 from exchange.bitget import get_candles, get_positions
 
@@ -238,7 +239,15 @@ while True:
                     "score": score
                 })
 
-                results[-1]["brain_score"] = intelligence_score(results[-1])
+                base_brain_score = intelligence_score(results[-1])
+                direction_label = "BUY" if "BUY" in str(results[-1]["setup"]).upper() else "SELL"
+
+                # Dynamic Self-Learning Reinforcement Adjustment
+                results[-1]["brain_score"] = apply_self_learning_adjustment(
+                    base_score=base_brain_score,
+                    direction=direction_label,
+                    context=results[-1]
+                )
                 results[-1]["score"] = results[-1]["brain_score"]
 
             except Exception as pair_err:
